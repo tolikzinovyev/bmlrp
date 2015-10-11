@@ -1,0 +1,65 @@
+\documentclass[14pt]{extarticle}
+
+\usepackage[margin=0.6in]{geometry}
+\geometry{letterpaper}
+
+\usepackage{url}
+
+\title{Binary Multi-Level Routing Protocol}
+\author{Anatoliy Zinovyev}
+\date{}
+
+\newcommand{\urbanxor}{URBAN\_XOR}
+
+
+\begin{document}
+
+\maketitle
+
+\abstract{
+Routing in mobile ad hoc networks (MANETs) presents a big challenge, especially when support for a large number of nodes is needed. This paper extends the local visibility concept of a DHT-based \urbanxor\ routing protocol \cite{urbanxor}, that aims to reduce routing table size while keeping efficiency high. Our main contribution is providing a guarantee that if any two nodes are connected through other nodes, they are able to communicate with each other. We also use a different routes acquisition method which lowers the total amount of traffic and handles mobility exceptionally well. In addition, a different abstraction is used to describe the protocol that makes it easy to understand and analyze. Finally, we perform simulation on a large number of nodes specifically to support our claims. Overall, the new protocol aims to satisfy the following requirements: scalability, absence of single points of failure, low path-stretch, support of multi-path connectivity, mobility.
+}
+
+\section{Introduction}
+
+DHT-based routing protocols in MANETs are interesting for number of reasons. First is its scalability properties achived by creating a special network structure and reducing the routing table size. Second is its simplicity relatively to clustering-based approaches. In clustering-based protocols, nodes are divided into groups, and groups are split into groups subsequently \cite{Hong}. Although, such approach can be scalable, it is usually hard to implement. In addition, clustering-based protocols often use critical nodes for controlling clusters \cite{Hong} and dynamic addresses \cite{Hong, dart, ntk} which certainly do not add up to the stability of the network [??].
+
+DHT-based routing, however, often suffers from the mismatch problem resulting in a high path-stretch. In such networks, every node has its own logical identifier (LID) and also stores information about a portion of other nodes with certain LIDs, such that any node should be able to send information to any other node. Because in such network routing is done on top of the logical structure and the logical addresses do not necessarily resemble the physical location, the number of physical hops through which data is traversed is often far from being optimal \cite{Abid}.
+
+Number of interesting solutions have been proposed for minimizing the path-stretch. For example, Virtual Ring Routing protocol builds a virtual ring where nodes are ordered according to their LIDs. Each node maintains a constant number of nodes with closest addresses. When routing data, the next hop with the closest address to destination's address is chosen. The guarantee of constant path-stretch relies on the fact that each node knows O(sqrt(N)) nodes, and thus the probability that a node will know route to the destination is O(1/sqrt(N)). Therefore, the expected number of traversed nodes is O(sqrt(N)) [7]. Another approach is taken by 3D routing protocol, which ensures good path-stretch properties by integrating nodes' LIDs into 3-dimensional space. Thus, forwarding data is as simple as sending it into the "right direction" [8]. Both approaches, however, fail to deal with the network mobility and merging/splitting operations. 
+
+The recent \urbanxor\ protocol moves to an interesting direction by imploying a Kademlia DHT inspired approach for building the network structure. Each node maintains n buckets for storing information about nodes with address prefixes equal to the node's address prefix. When routing information to any node, the next hop with the longest matching prefix is chosen from the n buckets. Path efficiency is achived by employing the concept of local visibility which prioritizes physically close nodes in the routing table. By maintaining this network structure, mobility support turns out to be much better.
+
+The \urbanxor\ protocol, however has number of drawbacks. The most prominent one is the absence of guarantee that if 2 nodes are indirectly connected they are able to communicate [9]. Another objection is the method of acquiring paths to other nodes, which still tends to generate much overhead traffic in mobile scenarios. The protocol proposed in this paper aims to solve both problems altogether. In addition, it decreases the path-stretch even further by introducing a novel algorithm that selects the most optimal routes without maintaining them.
+
+The rest of the paper is organized in the following way. Section II describes the \urbanxor\ routing protocol in more details. Section III introduces the new improved protocol. Section IV discusses some additional optimizations employed. Section V analyzes the routing complexity of the new approach. Section VI overviews the simulation results obtained. Section VII concludes the paper.
+
+
+\section{\urbanxor}
+
+In the \urbanxor\ protocol each node has a unique permanent n-bit identifier, that is randomly generated before connecting to the network. The routing table of every node is organized into n buckets, each of size K. We will denote $l(a,b)$ as a function of 2 addresses. The value of $l(a,b)$ is length of the longest common prefix of $a$ and $b$. For instance, $l(01100, 01000) = 2$ because the biggest common prefix is $01$. When a node $a$ discovers a new neighbor $b$, identifier $b$ is added to the bucket number $l(a,b)$ of node $a$.
+
+After the node connects to its direct (both physical and virtual) neighbors, it starts fulfilling the n buckets by asking for missing nodes. When a new node is discovered, an abstract virtual link is built to it. Thus, multi-hop routes in the physical space are stored in a reduced form. At the same time nodes passively overhear the traffic to find new routes without loading the network. The local visibilty concept ensures that only physically close nodes are stored in the routing table.
+
+Similarly to Kademlia DHT [10], when node $a$ is routing data to $b$, the first node selects an address $c$ from its routing table such that $l(b,c)$ is maximized. Because each next node that forwards the data has longer common prefix with the destination, the data eventually arrives. For this to be always true, each node in the network must have at least one entry in each bucket if an appropriate identifier exists. \urbanxor\, however, might maintain empty buckets and fail to satisfy the property [9].
+
+When 2 physical neighbors disconnect from each other, all virtual routes passing through the destroyed link must be eliminated [9]. This might be traffic consuming when the node is moving or having an unstable link to a physical neighbor.
+
+\section{The Proposed Protocol}
+
+Consider a node with a unique permanent n-bit address $a$, similarly to \urbanxor. We say that all nodes $b$ in the network form a level-$i$ network if $l(a,b) \ge i$. For instance, level-0 network will contain all nodes, which is also defined as $physical network$. Level-3 network will contain all nodes that have first 3 bits equal to the first 3 bits of $a$. Because we assume all identifiers are distributed evenly, number of level-3 nodes will be approximately 8 times less the physical network size. As a general rule, level-$i$ network contains approximately $\frac{N}{2^i}$ nodes, where $N$ is the size of the physical network.
+
+After a node joins the physical network, it starts creating virtual links to the nearby level-1 nodes. In a sense, it connects to them the same way it connects to the physical neighbors. We now abstractly consider level-1 network similar to level-0 network by all properties. The idea is to ascend up to the point where number of close level-$n$ neighbors is equal to the total number of all level-$n$ nodes. When node $a$ is routing data to node $d$, it will pick next hop $b$ from level-$l(a,d)$ network of $a$ such that $l(b,d) > l(a,d)$. In other words, the first bit that is not equal between $a$ and $d$ must be equal between $b$ and $d$. Similarly to Kademlia DHT and \urbanxor\, each new node forwarding the traffic has longer common prefix with $d$.
+
+%EXAMPLE
+
+We will now examine how nodes discover their multi-hop neighbors. Consider nodes $a$ and $b$ connecting to each other in level-$i$ network. When the link establishes, if $a$ and $b$ are different in color, node $b$ will notify its level-$i$ direct neighbors of the newly created link. When a neighbor $c$ receives the message, it will propogate the information to its direct neighbor $d$ if and only if 1) nodes $a$ and $c$ are different in color in level $i$ and 2) there is no such node $g$ that the shortest distance (in hops, level $i$) from $a$ to $g$ and the shortest distance from $d$ to $g$ are both shorter than the shortest path from $a$ to $c$. All nodes will continue spreading this information while the requirement is satisfied. Analogously, node $a$ will notify its neighbors, which in turn will propogate the information further under the above mentioned requirement.
+
+%EXAMPLE
+
+
+% Generate the bibliography.
+\bibliography{bmlrp}
+\bibliographystyle{unsrt}
+
+\end{document}
