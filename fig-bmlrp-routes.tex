@@ -1,0 +1,116 @@
+\begin{figure}
+    \centering
+
+    \newcommand{\scl}{0.9}
+    \input{graphs.tex}
+
+    \begin{subfigure}[b]{0.35\textwidth}
+        \centering
+
+        \begin{tikzpicture}
+            \bn (n0) at (\coordscl{0}, \coordscl{0}) {11100};
+            \wn[draw=blue] (n1) at (\coordscl{1}, \coordscl{0}) {01100};
+            \wn (n2) at (\coordscl{2}, \coordscl{0}) {01010};
+            \wn (n3) at (\coordscl{3}, \coordscl{0}) {01001};
+            \wn (n4) at (\coordscl{4}, \coordscl{0}) {01011};
+            \wn (n5) at (\coordscl{0}, \coordscl{1}) {01111};
+            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
+            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
+            \bn (n8) at (\coordscl{3}, \coordscl{1}) {10110};
+            \bn (n9) at (\coordscl{4}, \coordscl{1}) {10001};
+
+            \draw[dashed]
+                (n1) -- (n2)
+                (n1) -- (n6)
+                ;
+
+            \draw
+                (n2) -- (n3)
+                (n5) -- (n6)
+                (n6) -- (n7)
+                (n7) -- (n8)
+                (n8) -- (n9)
+                (n0) -- (n5)
+                (n2) -- (n7)
+                (n3) -- (n8)
+                (n4) -- (n9)
+                ;
+        \end{tikzpicture}
+
+        \caption{Physical network}
+        \label{fig:bmlrp-routes-all}
+    \end{subfigure}%
+    %
+    \begin{subfigure}[b]{0.15\textwidth}
+        \centering
+
+        \begin{tikzpicture}
+            \wn (n5) at (\coordscl{1}, \coordscl{2}) {01111};
+            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
+            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
+
+            \draw
+                (n5) -- (n6)
+                (n6) -- (n7)
+                ;
+        \end{tikzpicture}
+
+        \caption{by 10010}
+        \label{fig:bmlrp-routes-nb1}
+    \end{subfigure}%
+    %
+    \begin{subfigure}[b]{0.2\textwidth}
+        \centering
+
+        \begin{tikzpicture}
+            \wn (n2) at (\coordscl{2}, \coordscl{0}) {01010};
+            \wn (n3) at (\coordscl{3}, \coordscl{0}) {01001};
+            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
+            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
+            \bn (n8) at (\coordscl{3}, \coordscl{1}) {10110};
+
+            \draw
+                (n2) -- (n3)
+                (n6) -- (n7)
+                (n7) -- (n8)
+                (n2) -- (n7)
+                (n3) -- (n8)
+                ;
+        \end{tikzpicture}
+
+        \caption{by 01010}
+        \label{fig:bmlrp-routes-nb2}
+    \end{subfigure}%
+    %
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+
+        \begin{tikzpicture}
+            \wn[draw=blue] (n1) at (\coordscl{1}, \coordscl{0}) {01100};
+            \wn (n2) at (\coordscl{2}, \coordscl{0}) {01010};
+            \wn (n3) at (\coordscl{3}, \coordscl{0}) {01001};
+            \wn (n5) at (\coordscl{0}, \coordscl{1}) {01111};
+            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
+            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
+            \bn (n8) at (\coordscl{3}, \coordscl{1}) {10110};
+
+            \draw
+                (n1) -- (n2)
+                (n2) -- (n3)
+                (n5) -- (n6)
+                (n6) -- (n7)
+                (n7) -- (n8)
+                (n1) -- (n6)
+                (n2) -- (n7)
+                (n3) -- (n8)
+                ;
+        \end{tikzpicture}
+
+        \caption{Seen by 01100}
+        \label{fig:bmlrp-routes-visible}
+    \end{subfigure}%
+    %
+
+    \caption{Routes acquisition}
+    \label{fig:bmlrp-routes}
+\end{figure}
