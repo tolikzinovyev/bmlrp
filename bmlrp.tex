@@ -7,6 +7,13 @@
 \usepackage{tikz}
 \usepackage{subcaption}
 
+\usepackage{amsthm}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\newtheorem{thm}{Theorem}
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem{algo}{Algorithm}
+
 \title{Binary Multi-Level Routing Protocol}
 \author{Anatoliy Zinovyev}
 \date{}
@@ -54,20 +61,40 @@ After a node joins the physical network, it starts creating virtual links to the
 
 For simplicity, from now on we will say that a node on level $l$ is white if the $(l+1)$-th bit of its address is 0; otherwise the node is black.
 
-We will now examine how nodes discover their multi-hop neighbors. Consider nodes $a$ and $b$ connecting to each other in level-$i$ network. When the link is established, if $a$ and $b$ are different in color, node $b$ will notify its level-$i$ direct neighbors of the newly created link. When a neighbor $c$ receives the message, it will propogate the information to its direct neighbor $d$ if and only if 1) nodes $a$ and $c$ are different in color in level $i$ and 2) there is no such node $g$ that the shortest distance (in hops, level $i$) from $a$ to $g$ and the shortest distance from $d$ to $g$ are both shorter than the shortest path from $a$ to $c$. All nodes will continue spreading this information while the requirement is satisfied. Analogously, node $a$ will notify its neighbors, which in turn will propogate the information further under the above mentioned requirement.
+We will now examine how nodes discover their multi-hop neighbors. Consider nodes $a$ and $b$ connecting to each other in level-$i$ network. When the link is established, if $a$ and $b$ are different in color, node $b$ will notify its level-$i$ direct neighbors of the newly created link. When a neighbor $c$ receives the message, it will propagate the information to its direct neighbor $d$ if and only if 1) nodes $a$ and $c$ are different in color in level $i$ and 2) there is no such node $g$ that the shortest distance (in hops, level $i$) from $a$ to $g$ and the shortest distance from $d$ to $g$ are both shorter than the shortest path from $a$ to $c$. All nodes will continue spreading this information while the requirement is satisfied. Analogously, node $a$ will notify its neighbors, which in turn will propagate the information further under the above mentioned requirement.
 
 Not only the nodes will spread information about links when they are created -- when a node $a$ connects to $b$, node $b$ transmits all links that $a$ is supposed to know, just as they were created right after that moment. The node forms its routing table by merging all information received from the neighbors. Consider an example in Figure~\ref{fig:bmlrp-routes}. When node 01100 connects to 10010 and 01010, the two send links indicated in Figures \ref{fig:bmlrp-routes-nb1} and \ref{fig:bmlrp-routes-nb2}. The connecting node merges the information and forms an in-memory graph shown in Figure~\ref{fig:bmlrp-routes-visible}. By the strategy described above, nodes 01111 and 10110 also learn about 01100.
 
 \input{fig-bmlrp-routes.tex}
 
-When two direct neighbors $a$ and $b$ disconnect, node $a$ removes all routes sent by $b$ and updates its routing table, which is now a union of links communicated by $a$'s other neighbors. If before, $a$ told node $c$ about $b$, it will send an update to $c$; node $c$ will propogate the information further. For example, in Figure~\ref{fig:bmlrp-routes} when nodes 01100 and 10010 disconnect, the first node's routing table becomes one shown in Figure~\ref{fig:bmlrp-routes-nb2}. Because 10010 have told 01111 about 01100, it will send a corresponding update to 01111. Although Figure~\ref{fig:bmlrp-routes} illustrates the operation on the physical level, the same applies for every level-$i$ network.
+When two direct neighbors $a$ and $b$ disconnect, node $a$ removes all routes sent by $b$ and updates its routing table, which is now a union of links communicated by $a$'s other neighbors. If before, $a$ told node $c$ about $b$, it will send an update to $c$; node $c$ will propagate the information further. For example, in Figure~\ref{fig:bmlrp-routes} when nodes 01100 and 10010 disconnect, the first node's routing table becomes one shown in Figure~\ref{fig:bmlrp-routes-nb2}. Because 10010 have told 01111 about 01100, it will send a corresponding update to 01111. Although Figure~\ref{fig:bmlrp-routes} illustrates the operation on the physical level, the same applies for every level-$i$ network.
 
-All updates of links communicated between direct neighbors are sent in a proper order. The strategy is to create a persistent network information, where each node only maintains correct up-to-date routes. This can be explained as follows. Suppose, node $a$ knows about link $b$--$c_1$ that breaks. By the algorithm, for every graph chain $b$--$c_1$--$c_2$--...--$c_k$--$a$ stored in memory of $a$, $c_k$--$a$ and every connection $c_j$--$c_{j+1}$ must be alive. Therefore, if nodes $b$ and $c_1$ disconnect, the information will be propogated through every such chain and record of the link will be erased.
+All updates of links communicated between direct neighbors are sent in a proper order. The strategy is to create a persistent network state information, where each node only maintains correct up-to-date routes. This can be explained as follows. Suppose, node $a$ knows about link $b$--$c_1$ that breaks. By the algorithm, for every graph chain $b$--$c_1$--$c_2$--...--$c_k$--$a$ stored in memory of $a$, $c_k$--$a$ and every connection $c_j$--$c_{j+1}$ must be alive. Therefore, if nodes $b$ and $c_1$ disconnect, the information will be propagated through every such chain and record of the link will be erased.
 
 Figure~\ref{fig:bmlrp-routing} shows an example of routing data from 11100 to 01000, with subfigures demonstrating different levels of network with respect to the destination.. The blue nodes denote the routing nodes; the red node on each level indicates the destination. Bold entries indicate information known by the routing (blue) node. The journey starts on the physical level depicted by Figure~\ref{fig:bmlrp-routing-l0}. The source and destination nodes differ in the first bit, therefore 11100 transmits the data to a close white node -- 01100. Figure~\ref{fig:bmlrp-routing-l1} shows Level-1 network with respect to the destination, where routing node is now 01100. Because it is equal in color to the destination, 01100 will forward the data through one of its level-2 neighbors. When node 01010 receives the message, it will find the destination address in its routing table level-3 and will forward the data.
 
 \input{fig-bmlrp-routing.tex}
 
+In this example, if node $a$ knows $b$ on level-$i$ and they are the same color, node $b$ is a direct neighbor of $a$ on level-$(i+1)$. Although, this already provides a guarantee that any two nodes are able to communicate whenever the physical network is connected, it can be foreseen that the routing table size will increase exponentially with the level number. This is not desirable, and a more restrictive approach has to be applied. For this reason, we are introducing several new concepts.
+
+\begin{defn}
+    We say that node $a$ is connected to node $b$ on level $i$ if $a$ and $b$ can communicate and $b$ sends updates regarding level-$i$ neighbors to node $a$ according to Algorithm~\ref{alg:routes} (described later). 
+    \label{defn:connected}
+\end{defn}
+
+\begin{defn}
+    A node $a$ pseudo-sees node $b$ on level $i$ if either $a$ is connected to $b$ or there exists a level-$i$ node $c$ such that $a$ is connected to $c$ and $c$ pseudo-sees $b$.
+
+    \label{defn:pseudo-vision}
+\end{defn}
+
+From now on, we will think about connectivity as a directed edge (although, two opposite edges between two nodes are allowed). When a node $a$ is connected to $b$, we say node $b$ is outbound for $a$, and $a$ is inbound for $b$. Although, we have have already established an approximate version of the route propagation algorithm, the following code describes this more precisely.
+
+\begin{algo}
+    lala
+
+    \label{alg:routes}
+\end{algo}
 
 % Generate the bibliography.
 \bibliography{bmlrp}
