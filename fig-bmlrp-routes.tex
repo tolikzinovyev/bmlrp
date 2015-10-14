@@ -1,112 +1,156 @@
 \begin{figure}
     \centering
 
-    \newcommand{\scl}{0.9}
+    \newcommand{\nodescl}{0.7}
+    \newcommand{\edgescl}{1}
     \input{graphs.tex}
 
-    \begin{subfigure}[b]{0.35\textwidth}
+    \begin{subfigure}[b]{0.25\textwidth}
         \centering
 
         \begin{tikzpicture}
-            \bn (n0) at (\coordscl{0}, \coordscl{0}) {11100};
-            \wn[draw=blue] (n1) at (\coordscl{1}, \coordscl{0}) {01100};
-            \wn (n2) at (\coordscl{2}, \coordscl{0}) {01010};
-            \wn (n3) at (\coordscl{3}, \coordscl{0}) {01001};
-            \wn (n4) at (\coordscl{4}, \coordscl{0}) {01011};
-            \wn (n5) at (\coordscl{0}, \coordscl{1}) {01111};
-            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
-            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
-            \bn (n8) at (\coordscl{3}, \coordscl{1}) {10110};
-            \bn (n9) at (\coordscl{4}, \coordscl{1}) {10001};
+            \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
+            \wn (n1) at (\coordscl{1}, \coordscl{0}) {1};
+            \wn (n2) at (\coordscl{2}, \coordscl{0}) {2};
+            \wn (n3) at (\coordscl{3}, \coordscl{0}) {3};
+            \bn (n4) at (\coordscl{0}, \coordscl{1}) {4};
+            \wn (n5) at (\coordscl{1}, \coordscl{1}) {5};
+            \bn (n6) at (\coordscl{2}, \coordscl{1}) {6};
+            \bn (n7) at (\coordscl{3}, \coordscl{1}) {7};
+            \wn (n8) at (\coordscl{0}, \coordscl{2}) {8};
+            \wn (n9) at (\coordscl{1}, \coordscl{2}) {9};
+            \wn (n10) at (\coordscl{2}, \coordscl{2}) {10};
+            \wn (n11) at (\coordscl{3}, \coordscl{2}) {11};
 
-            \draw[dashed]
-                (n1) -- (n2)
-                (n1) -- (n6)
-                ;
+            \draw[->,dashed]
+                (n0) -- (n1);
+            \draw[->,dashed]
+                (n0) -- (n4);
 
-            \draw
-                (n2) -- (n3)
-                (n5) -- (n6)
-                (n6) -- (n7)
-                (n7) -- (n8)
-                (n8) -- (n9)
-                (n0) -- (n5)
-                (n2) -- (n7)
-                (n3) -- (n8)
-                (n4) -- (n9)
-                ;
+            \draw[->]
+                (n1) -- (n2);
+            \draw[->]
+                (n2) -- (n3);
+            \draw[->]
+                (n2) -- (n6);
+            \draw[->]
+                (n6) -- (n5);
+            \draw[->]
+                (n7) -- (n6);
+            \draw[->]
+                (n4) -- (n8);
+            \draw[->]
+                (n11) -- (n7);
+            \draw[->]
+                (n8) -- (n9);
+            \draw[->]
+                (n9) -- (n10);
+            \draw[->]
+                (n10) -- (n11);
+
+            \draw[<->]
+                (n1) -- (n5);
+            \draw[<->]
+                (n3) -- (n7);
+            \draw[<->]
+                (n4) -- (n5);
         \end{tikzpicture}
-
-        \caption{Physical network}
+        
+        
+        \caption{Level-$i$ network}
         \label{fig:bmlrp-routes-all}
     \end{subfigure}%
     %
-    \begin{subfigure}[b]{0.15\textwidth}
+    \begin{subfigure}[b]{0.25\textwidth}
         \centering
 
         \begin{tikzpicture}
-            \wn (n5) at (\coordscl{1}, \coordscl{2}) {01111};
-            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
-            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
+            \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
+            \Wn[draw=green] (n1) at (\coordscl{1}, \coordscl{0}) {1};
+            \Wn (n2) at (\coordscl{2}, \coordscl{0}) {2};
+            \wn (n3) at (\coordscl{3}, \coordscl{0}) {3};
+            \Bn (n4) at (\coordscl{0}, \coordscl{1}) {4};
+            \Wn (n5) at (\coordscl{1}, \coordscl{1}) {5};
+            \Bn (n6) at (\coordscl{2}, \coordscl{1}) {6};
+            \bn (n7) at (\coordscl{3}, \coordscl{1}) {7};
+            
+            \draw[dashed]
+                (n0) -- (n1);
+
+            \draw[very thick]
+                (n1) -- (n2)
+                (n4) -- (n5)
+                (n1) -- (n5)
+                (n2) -- (n6)
+                ;
 
             \draw
-                (n5) -- (n6)
-                (n6) -- (n7)
-                ;
+                (n2) -- (n3)
+                (n3) -- (n7)
+                ;                
         \end{tikzpicture}
 
-        \caption{by 10010}
+        \caption{Graph $G'$ of node 1}
         \label{fig:bmlrp-routes-nb1}
     \end{subfigure}%
     %
-    \begin{subfigure}[b]{0.2\textwidth}
+    \begin{subfigure}[b]{0.25\textwidth}
         \centering
 
         \begin{tikzpicture}
-            \wn (n2) at (\coordscl{2}, \coordscl{0}) {01010};
-            \wn (n3) at (\coordscl{3}, \coordscl{0}) {01001};
-            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
-            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
-            \bn (n8) at (\coordscl{3}, \coordscl{1}) {10110};
+            \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
+            \Bn[draw=green] (n4) at (\coordscl{0}, \coordscl{1}) {4};
+            \Wn (n5) at (\coordscl{1}, \coordscl{1}) {5};
+            \bn (n7) at (\coordscl{3}, \coordscl{1}) {7};
+            \Wn (n8) at (\coordscl{0}, \coordscl{2}) {8};
+            \wn (n9) at (\coordscl{1}, \coordscl{2}) {9};
+            \wn (n10) at (\coordscl{2}, \coordscl{2}) {10};
+            \wn (n11) at (\coordscl{3}, \coordscl{2}) {11};
+
+            \draw[dashed]
+                (n0) -- (n4);
+
+            \draw[very thick]
+                (n4) -- (n5)
+                (n4) -- (n8)
+                ;
 
             \draw
-                (n2) -- (n3)
-                (n6) -- (n7)
-                (n7) -- (n8)
-                (n2) -- (n7)
-                (n3) -- (n8)
+                (n7) -- (n11)
+                (n8) -- (n9)
+                (n9) -- (n10)
+                (n10) -- (n11)
                 ;
         \end{tikzpicture}
 
-        \caption{by 01010}
+        \caption{Graph $G'$ of node 4}
         \label{fig:bmlrp-routes-nb2}
     \end{subfigure}%
     %
-    \begin{subfigure}[b]{0.3\textwidth}
+    \begin{subfigure}[b]{0.25\textwidth}
         \centering
 
         \begin{tikzpicture}
-            \wn[draw=blue] (n1) at (\coordscl{1}, \coordscl{0}) {01100};
-            \wn (n2) at (\coordscl{2}, \coordscl{0}) {01010};
-            \wn (n3) at (\coordscl{3}, \coordscl{0}) {01001};
-            \wn (n5) at (\coordscl{0}, \coordscl{1}) {01111};
-            \bn (n6) at (\coordscl{1}, \coordscl{1}) {10010};
-            \wn (n7) at (\coordscl{2}, \coordscl{1}) {00110};
-            \bn (n8) at (\coordscl{3}, \coordscl{1}) {10110};
+            \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
+            \wn (n1) at (\coordscl{1}, \coordscl{0}) {1};
+            \wn (n2) at (\coordscl{2}, \coordscl{0}) {2};
+            \bn (n4) at (\coordscl{0}, \coordscl{1}) {4};
+            \wn (n5) at (\coordscl{1}, \coordscl{1}) {5};
+            \bn (n6) at (\coordscl{2}, \coordscl{1}) {6};
+            \wn (n8) at (\coordscl{0}, \coordscl{2}) {8};
 
             \draw
+                (n0) -- (n1)
                 (n1) -- (n2)
-                (n2) -- (n3)
-                (n5) -- (n6)
-                (n6) -- (n7)
-                (n7) -- (n8)
-                (n1) -- (n6)
-                (n2) -- (n7)
-                (n3) -- (n8)
+                (n0) -- (n4)
+                (n1) -- (n5)
+                (n2) -- (n6)
+                (n4) -- (n5)
+                (n4) -- (n8)
                 ;
         \end{tikzpicture}
 
-        \caption{Seen by 01100}
+        \caption{Graph $G$ of node 0}
         \label{fig:bmlrp-routes-visible}
     \end{subfigure}%
     %
