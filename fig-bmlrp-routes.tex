@@ -22,38 +22,26 @@
             \wn (n10) at (\coordscl{2}, \coordscl{2}) {10};
             \wn (n11) at (\coordscl{3}, \coordscl{2}) {11};
 
-            \draw[->,dashed]
-                (n0) -- (n1);
-            \draw[->,dashed]
-                (n0) -- (n4);
+            \draw[dashed]
+                (n0) -- (n1)
+                (n0) -- (n4)
+                ;
 
-            \draw[->]
-                (n1) -- (n2);
-            \draw[->]
-                (n2) -- (n3);
-            \draw[->]
-                (n2) -- (n6);
-            \draw[->]
-                (n6) -- (n5);
-            \draw[->]
-                (n7) -- (n6);
-            \draw[->]
-                (n4) -- (n8);
-            \draw[->]
-                (n11) -- (n7);
-            \draw[->]
-                (n8) -- (n9);
-            \draw[->]
-                (n9) -- (n10);
-            \draw[->]
-                (n10) -- (n11);
-
-            \draw[<->]
-                (n1) -- (n5);
-            \draw[<->]
-                (n3) -- (n7);
-            \draw[<->]
-                (n4) -- (n5);
+            \draw
+                (n1) -- (n2)
+                (n2) -- (n3)
+                (n2) -- (n6)
+                (n6) -- (n5)
+                (n7) -- (n6)
+                (n4) -- (n8)
+                (n11) -- (n7)
+                (n8) -- (n9)
+                (n9) -- (n10)
+                (n10) -- (n11)
+                (n1) -- (n5)
+                (n3) -- (n7)
+                (n4) -- (n5)
+                ;
         \end{tikzpicture}
         
         
@@ -82,6 +70,7 @@
                 (n4) -- (n5)
                 (n1) -- (n5)
                 (n2) -- (n6)
+                (n5) -- (n6)
                 ;
 
             \draw
@@ -90,7 +79,7 @@
                 ;                
         \end{tikzpicture}
 
-        \caption{Graph $G'$ of node 1}
+        \caption{Graph $G_0'$ of node 1}
         \label{fig:bmlrp-routes-nb1}
     \end{subfigure}%
     %
@@ -101,6 +90,7 @@
             \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
             \Bn[draw=green] (n4) at (\coordscl{0}, \coordscl{1}) {4};
             \Wn (n5) at (\coordscl{1}, \coordscl{1}) {5};
+            \bn (n6) at (\coordscl{2}, \coordscl{1}) {6};
             \bn (n7) at (\coordscl{3}, \coordscl{1}) {7};
             \Wn (n8) at (\coordscl{0}, \coordscl{2}) {8};
             \wn (n9) at (\coordscl{1}, \coordscl{2}) {9};
@@ -116,6 +106,7 @@
                 ;
 
             \draw
+                (n5) -- (n6)
                 (n7) -- (n11)
                 (n8) -- (n9)
                 (n9) -- (n10)
@@ -123,7 +114,7 @@
                 ;
         \end{tikzpicture}
 
-        \caption{Graph $G'$ of node 4}
+        \caption{Graph $G_0'$ of node 4}
         \label{fig:bmlrp-routes-nb2}
     \end{subfigure}%
     %
@@ -146,6 +137,7 @@
                 (n1) -- (n5)
                 (n2) -- (n6)
                 (n4) -- (n5)
+                (n5) -- (n6)
                 (n4) -- (n8)
                 ;
         \end{tikzpicture}

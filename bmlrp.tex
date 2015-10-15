@@ -73,33 +73,35 @@ Figure~\ref{fig:bmlrp-routing} shows a simplified example of routing data from 1
 We will now examine how nodes discover their multi-hop neighbors.
 
 \begin{defn}
-    We say that node $a$ is connected to node $b$ on level $i$ if $a$ and $b$ can communicate and $b$ sends updates regarding level-$i$ neighbors to node $a$ according to Algorithm~\ref{alg:routes} (described later). Node $b$ is outbound for $a$; $a$ is an inbound neighbor for $b$.
+    We say that nodes $a$ and $b$ are connected on level $i$ if $a$ and $b$ send information about close level-$i$ nodes to each other according to Algorithm~\ref{alg:routes} (described later).
     
     \label{defn:connected}
 \end{defn}
 
 \begin{samepage}
 \begin{algo}
-    A node $a$ builds its routing table $G$ (in the undirected graph representation of the network) by merging the graphs received from all of its outbound neighbors and adding all direct edges to these outbound neighbors. If node $a$ has an inbound neighbor $b$, it will send an appropriate subset $G_b$ of $G$ defined as following.
+    For each connected neighbor $b$ node $a$ constructs a graph $G_b$ by merging the graphs received from all of its neighbors except $b$ and adding all direct edges to these neighbors. Additionally, define $G_b'$ by adding node $b$ and the edge $b$--$a$ to $G_b$. Node $a$ then calculates a subset $G_{outb}$ of $G_b$ defined as follows.
 
-    Consider every graph chain $gc$ in $G$ with unique vertices starting with $a$. Now, define $gc'$ and $G'$ by adding node $b$ and the edge $b$--$a$ to $gc$ and $G$ respectively. All nodes and vertices of $gc$ will be included in $G_b$ if: 1) the color of the last node $col$ in $gc$ differs from the color of all other vertices in $gc$ and 2) there is no such node $c$ with color $col$ in $G'$ such that the shortest path from $a$ to $c$ and the shortest path from $c$ to $b$ are both shorter than the length of $gc'$.
+    Consider every graph chain $gc$ in $G$ with unique vertices starting with $a$. All nodes and vertices of $gc$ will be included in $G_{outb}$ if: 1) the color $col$ of the last node in $gc$ is unique and 2) there is no such node $c$ with color $col$ in $G_b'$ such that the shortest path from $a$ to $c$ and the shortest path from $c$ to $b$ are both shorter than the length of $gc'$ + 1.
 
-    If node $b$ has just connected to $a$, $a$ will calculate and send out $G_b$. Later, for any change in $G$, $a$ will recalculate $G_b$ and send out the difference between the old and new $G_b$, such that $b$ can construct the new $G_b$ without incurring much traffic.
+    If node $b$ has just connected to $a$, $a$ will calculate and send out $G_{outb}$. Later, for any change in its routing table $G$, $a$ will recalculate $G_{outb}$ and send out the difference, such that $b$ can construct the new $G_{outb}$ without incurring much traffic.
+
+    The same algorithm applies in the other direction too -- from $b$ to $a$.
 
     \label{alg:routes}
 \end{algo}
 \end{samepage}
 
-In Figure~\ref{fig:bmlrp-routes} node 0 connects to nodes 1 and 4. A directed edge from vertex $a$ to $b$ means $a$ is connected to $b$; a bidirectional link indicates connectivity in both directions. By Algorithm~\ref{alg:routes}, node's 1 graph $G'$ is depicted in Figure~\ref{fig:bmlrp-routes-nb1}. There are 6 different chains starting with node 1. Chains that will be included in $G_0$ are 1--5--4, 1--2--6. Chains 1--5, 1--2, 1--3 will not be included because the color of the last node is not unique. Finally, chain 1--2--3--7 will not be included because the shortest distance from 0 to 6 and from 6 to 7 is shorter than the chain itself. Figure~\ref{fig:bmlrp-routes-nb2} shows a similar graph of node 4. Here, the only 2 chains satisfying the requirement are 4--5 and 4--8. Node 0 combines the information received from the nodes 1,4 and forms a graph $G$ depicted in Figure~\ref{fig:bmlrp-routes-visible}.
+In Figure~\ref{fig:bmlrp-routes} node 0 connects to nodes 1 and 4. By Algorithm~\ref{alg:routes}, node's 1 graph $G_0'$ is depicted in Figure~\ref{fig:bmlrp-routes-nb1}. There are 12 different chains starting with node 1. Chains that will be included in $G_{out0}$ are 1--5--4, 1--5--6, 1--2--6. Chain 1--2--3--7 will not be included because the shortest distance from 0 to 6 and from 6 to 7 is shorter than the chain itself. All other chains will not be included because the color of the last vertex is not unique. Figure~\ref{fig:bmlrp-routes-nb2} shows a similar graph of node 4. Here, the only 2 chains satisfying the requirement are 4--5 and 4--8. Node 0 combines the information received from the nodes 1,4 and forms a routing table $G$ depicted in Figure~\ref{fig:bmlrp-routes-visible}.
 
 \input{fig-bmlrp-routes.tex}
 
 All updates of links communicated between direct neighbors are sent in a proper order. The strategy is to create a persistent network state information, where each node only maintains correct up-to-date routes. This can be explained as follows. Suppose, node $a$ knows about link $b$--$c_1$ that breaks. By the Algorithm~\ref{alg:routes}, for every graph chain $b$--$c_1$--$c_2$--...--$c_k$--$a$ stored in memory of $a$, $c_k$--$a$ and every connection $c_j$--$c_{j+1}$ must be alive. Therefore, if nodes $b$ and $c_1$ disconnect, the information will be propagated through every such chain and record of the link will be erased.
 
-To ensure connectivity between any two nodes in the network, it is sufficient to make every same-color node in level-$i$ graph $G$ an outbound neighbor on level-$(i+1)$. It can be foreseen, however, that this will lead to big routing tables on higher levels. Therefore, a more restrictive approach is needed.
+To ensure connectivity between any two nodes in the network, it is sufficient to make every same-color node in level-$i$ graph $G$ a neighbor on level-$(i+1)$. It can be foreseen, however, that this will lead to big routing tables on higher levels. Therefore, a more restrictive approach is needed.
 
 \begin{algo}
-    The following algorithm describes what nodes are necessary to connect to in order to satisfy the connectivity requirement. Node $a$ indicates the current node. $G$ is assumed to be routing table (graph) on level $i$. $N(x)$ indicates the set of all neighbors of $x$ in $G$. $connect(x)$ indicates $x$ will become an outbound level-$(i+1)$ neighbor of $a$.
+    The following algorithm describes what nodes are necessary to connect to in order to satisfy the connectivity requirement. Node $a$ indicates the current node. $G$ is assumed to be a level-$i$ routing table of $a$. $N(x)$ indicates the set of all neighbors of $x$ in $G$. $connect(x)$ indicates $x$ will become a level-$(i+1)$ neighbor of $a$.
 
     \begin{samepage}
     \begin{algorithmic}[1]
@@ -140,7 +142,7 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
 
             \For {$b \in N(a)$}
                 \If {color(b) == color(a)}
-                    \State connect($b$)      \Comment {make $b$ an outbound neighbor on the next level}
+                    \State connect($b$)      \Comment {make $b$ a neighbor on the next level}
                 \Else
                     \State $used[b] \gets true$
 
@@ -148,6 +150,12 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
                     \If {$c \ne a$}
                         \State connect($c$)     \Comment {connect to the logically closest same-colored node}
                     \EndIf
+
+                    \State $c \gets \argmin_{x \in N(b), color(x) = color(a)} dist(x,a)$
+                    \If {$c \ne a$}
+                        \State connect($c$)     \Comment {connect to a same-colored node, $a$ is logically closest to}
+                    \EndIf
+
                     \For {$d \in N(b), color(d) \ne color(a)$}
                         \If {$\argmin_{x \in N(b), color(x) = color(a)} dist(x,a) = a$}
                             \State EnterNeighborhood($d$)   \Comment {enter neighborhood if $a$ is logically closest}
@@ -158,13 +166,11 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
         \EndFunction
     \end{algorithmic}
     \end{samepage}
+
+    \label{alg:connect}
 \end{algo}
 
-\begin{defn}
-    A node $a$ pseudo-sees node $b$ on level $i$ if either $a$ is connected to $b$ or there exists a level-$i$ node $c$ such that $a$ is connected to $c$ and $c$ pseudo-sees $b$.
-
-    \label{defn:pseudo-vision}
-\end{defn}
+The first thing Algorithm~\ref{alg:connect} does is connecting to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second, for every neighbor $b$ of different color it connects to one logically preceeding and one logically succeding same-colored neighbors of $b$, if exist. This ensures that all same colored neighbors of $b$ are connected.
 
 % Generate the bibliography.
 \bibliography{bmlrp}
