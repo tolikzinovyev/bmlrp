@@ -82,9 +82,9 @@ We will now examine how nodes discover their multi-hop neighbors.
 \begin{algo}
     For each connected neighbor $b$ node $a$ constructs a graph $G_b$ by merging the graphs received from all of its neighbors except $b$ and adding all direct edges to these neighbors. Additionally, define $G_b'$ by adding node $b$ and the edge $b$--$a$ to $G_b$. Node $a$ then calculates a subset $G_{outb}$ of $G_b$ defined as follows.
 
-    Consider every graph chain $gc$ in $G$ with unique vertices starting with $a$. All nodes and vertices of $gc$ will be included in $G_{outb}$ if: 1) the color $col$ of the last node in $gc$ is unique and 2) there is no such node $c$ with color $col$ in $G_b'$ such that the shortest path from $a$ to $c$ and the shortest path from $c$ to $b$ are both shorter than the length of $gc'$ + 1.
+    Consider every graph chain $gc$ in $G_b$ with unique vertices starting with $a$. All nodes and vertices of $gc$ will be included in $G_{outb}$ if: 1) the color $col$ of the last node in $gc$ is unique and 2) there is no such node $c$ with color $col$ in $G_b'$ such that the shortest path from $a$ to $c$ and the shortest path from $c$ to $b$ are both shorter than the length of $gc'$ + 1.
 
-    If node $b$ has just connected to $a$, $a$ will calculate and send out $G_{outb}$. Later, for any change in its routing table $G$, $a$ will recalculate $G_{outb}$ and send out the difference, such that $b$ can construct the new $G_{outb}$ without incurring much traffic.
+    If node $b$ has just connected to $a$, $a$ will calculate and send out $G_{outb}$. Later, for any change in $G_b$, $a$ will recalculate $G_{outb}$ and send out the difference, such that $b$ can construct the new $G_{outb}$ without incurring much traffic.
 
     The same algorithm applies in the other direction too -- from $b$ to $a$.
 
@@ -170,7 +170,11 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
     \label{alg:connect}
 \end{algo}
 
-The first thing Algorithm~\ref{alg:connect} does is connecting to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second, for every neighbor $b$ of different color it connects to one logically preceeding and one logically succeding same-colored neighbors of $b$, if exist. This ensures that all same colored neighbors of $b$ are connected.
+The first thing Algorithm~\ref{alg:connect} does is connecting to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second, for every neighbor $b$ of different color it connects to one logically preceeding and one logically succeding same-colored neighbors of $b$, if exist. This ensures that all same colored nodes in the neighborhood of $b$ are connected. Finally, the algorithm connects neighborhood $b$ to neighbor neighborhoods of $b$.
+
+Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show level-$i$ links, dashed edges indicate level-$(i+1)$ connections). First, note how black neighbors of white nodes are organized into rings. Additionally, some black nodes are chosen to connect to black nodes of other neighbors. Node 4 calls $EnterNeighborhood(5)$ and stops the recursion. On the other hand, node 2 does not find any black neighbors of node 11 and calls $EnterNeighborhood(12)$ from $EnterNeighborhood(11)$.
+
+\input{fig-bmlrp-connect.tex}
 
 % Generate the bibliography.
 \bibliography{bmlrp}
