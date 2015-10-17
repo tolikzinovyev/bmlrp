@@ -7,6 +7,8 @@
 \usepackage{tikz}
 \usepackage{subcaption}
 
+\usepackage{amssymb}
+
 \usepackage{amsthm}
 \renewcommand{\qedsymbol}{$\blacksquare$}
 \newtheorem{thm}{Theorem}
@@ -73,7 +75,7 @@ Figure~\ref{fig:bmlrp-routing} shows a simplified example of routing data from 1
 We will now examine how nodes discover their multi-hop neighbors.
 
 \begin{defn}
-    We say that nodes $a$ and $b$ are connected on level $i$ if $a$ and $b$ send information about close level-$i$ nodes to each other according to Algorithm~\ref{alg:routes} (described later).
+    We say that nodes $a$ and $b$ are connected on level~$i$ if $a$ and $b$ send information about close level-$i$ nodes to each other according to Algorithm~\ref{alg:routes} (described later).
     
     \label{defn:connected}
 \end{defn}
@@ -175,6 +177,38 @@ The first thing Algorithm~\ref{alg:connect} does is connecting to all same-color
 Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show level-$i$ links, dashed edges indicate level-$(i+1)$ connections). First, note how black neighbors of white nodes are organized into rings. Additionally, some black nodes are chosen to connect to black nodes of other neighbors. Node 4 calls $EnterNeighborhood(5)$ and stops the recursion. On the other hand, node 2 does not find any black neighbors of node 11 and calls $EnterNeighborhood(12)$ from $EnterNeighborhood(11)$.
 
 \input{fig-bmlrp-connect.tex}
+
+\begin{thm}
+    Let a level-$i$ network be a connected graph. Then, level-$(i+1)$ network is also a connected graph.
+
+    \begin{proof}
+        Assume, level-$(i+1)$ graph is not connected (1). Now, let $c_k$ and $a$ be vertices from unconnected graph components in level~$(i+1)$, such that the distance from $c_k$ to $a$ in level $i$ is minimized (2). Also, for simplicity assume $c_k$ and $a$ are black in level~$i$ (the same applies if they are white). By the assumption, vertices $c_1,c_2,...,c_{k-1}$ from the shortest path chain $a$--$c_1$--$c_2$--...--$c_k$ must be white.
+
+        Assume, node $a$ does not know about $c_k$. Then, by Algorithm~\ref{alg:routes} some node $c_j$ does not forward the information about $a$ to $c_{j+1}$ because it knows such black node $b$ that the distance from $a$ to $b$ and the distance from $b$ to $c_{j+1}$ are both shorter than the distance from $a$ to $c_k$. However, this must contradict to (2), so $a$ and $c_k$ must know each other. Consequently, every node in the chain $a$--$c_1$--$c_2$--...--$c_k$ must know about the whole chain.
+
+        Algorithm~\ref{alg:connect} ensures that all black neighbors of connected white nodes in level~$i$ are connected in level~$(i+1)$. Therefore, $a$ and $c_k$ must be connected in level~$(i+1)$, leading to the contradiction of the original assumption (1).
+    \end{proof}
+
+    \label{thm:connectivity-levels}
+\end{thm}
+
+\begin{thm}
+    Let a level-$i$ network be a connected graph. Then, every node in this network must know at least one level-$i$ node of the opposite color, if such exists.
+
+    \begin{proof}
+        Suppose, a node $c_k$ does not know any node of the opposite color (1). For simplicity, let $c_k$ be black (the same applies otherwise). Now, let $a$ be a white node, such that the distance from $a$ to $c_k$ is minimized (2). By this assumption, all nodes $c_j$ along the shortest path $a$--$c_1$--$c_2$--...--$c_k$ must be black. Suppose, some node $c_j$ does not forward information about $a$ to $c_{j+1}$. Then, by Algorithm~\ref{alg:routes} there must exist a white node $b$, such that the distance from $b$ to $c_{j+1}$ is shorter than the distance from $a$ to $c_{j+1}$. However, this contradicts to (2) because the distance from $b$ to $c_k$ is shorter than the distance from $a$ to $c_k$. Therefore, all nodes $c_j$ ($1 \le j < k$) must forward the information about $a$ to $c_k$.
+    \end{proof}
+
+    \label{thm:connectivity-colors}
+\end{thm}
+
+Given Theorems~\ref{thm:connectivity-levels}~and~\ref{thm:connectivity-colors}, we can say that a node $a$ will always be able to forward a data packet with destination $d$ to the next hop $b$, such that $l(b,d) > l(a,d)$, satisfying the connectivity requirement.
+
+\section{Additional improvements}
+
+Although, Algorithm~\ref{alg:connect} creates 1 level-$(i+1)$ neigbor for every same-color level-$i$ neighbor and (on average) 3 level-$(i+1)$ neighbors for every level-$i$ neighbor of different color, we expect the higher level neigbors to coincide. In order to balance the routing table size and reduce the path-stretch, Algorithm~\ref{alg:routes} can be modified such that excessive routes are propagated, encouraging robustness and multi-path connectivity.
+
+Another optimization that can reduce the path-stretch is described as follows. For every outcoming data packet with destination $d$, the source node $s$ picks a number $p$ and chooses the next level-$l(s,d)$ hop $a$, prioritizing nodes logically close to $p$. The source node then hashes $p$ $l(s,a)$-number of times and sends the new number $p'$ along the data packet to $a$. The node $a$ (as well as all next hops) similarly selects the next hop $b$, prioritizing nodes logically close to $p'$, and hashes $p'$ corresponding number of times. This way, each number $p$ is mapped to some route. Because a right direction on lower levels is not as significant as routing optimally on higher levels, checking only 100 different values of $p$ should be enough to find an optimal path.
 
 % Generate the bibliography.
 \bibliography{bmlrp}
