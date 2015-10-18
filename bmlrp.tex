@@ -60,6 +60,7 @@ Similarly to Kademlia DHT \cite{kademlia}, when node $a$ is routing data to $b$,
 
 When 2 physical neighbors disconnect from each other, all virtual routes passing through the destroyed link must be eliminated \cite{Pasquini}. This might be traffic consuming when the node is moving or having an unstable link to a physical neighbor.
 
+
 \section{The Proposed Protocol}
 
 Consider a node with a unique permanent n-bit address $a$, similarly to \urbanxor. We say that all nodes $b$ in the network form a level-$i$ network if $l(a,b) \ge i$. For instance, level-0 network will contain all nodes, which is also defined as \emph{physical network}. Level-3 network will contain all nodes that have first 3 bits equal to the first 3 bits of $a$. Because we assume all identifiers are distributed evenly, number of level-3 nodes will be approximately 8 times less the physical network size. As a general rule, level-$i$ network contains approximately $\frac{N}{2^i}$ nodes, where $N$ is the size of the physical network.
@@ -204,11 +205,41 @@ Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show level-
 
 Given Theorems~\ref{thm:connectivity-levels}~and~\ref{thm:connectivity-colors}, we can say that a node $a$ will always be able to forward a data packet with destination $d$ to the next hop $b$, such that $l(b,d) > l(a,d)$, satisfying the connectivity requirement.
 
-\section{Additional improvements}
+
+\section{Additional Improvements}
 
 Although, Algorithm~\ref{alg:connect} creates 1 level-$(i+1)$ neigbor for every same-color level-$i$ neighbor and (on average) 3 level-$(i+1)$ neighbors for every level-$i$ neighbor of different color, we expect the higher level neigbors to coincide. In order to balance the routing table size and reduce the path-stretch, Algorithm~\ref{alg:routes} can be modified such that excessive routes are propagated, encouraging robustness and multi-path connectivity.
 
 Another optimization that can reduce the path-stretch is described as follows. For every outcoming data packet with destination $d$, the source node $s$ picks a number $p$ and chooses the next level-$l(s,d)$ hop $a$, prioritizing nodes logically close to $p$. The source node then hashes $p$ $l(s,a)$-number of times and sends the new number $p'$ along the data packet to $a$. The node $a$ (as well as all next hops) similarly selects the next hop $b$, prioritizing nodes logically close to $p'$, and hashes $p'$ corresponding number of times. This way, each number $p$ is mapped to some route. Because a right direction on lower levels is not as significant as routing optimally on higher levels, checking only 100 different values of $p$ should be enough to find an optimal path.
+
+An additional benefit of this method is providing good multi-path connectivity while maximizing the quality of the communication. Suppose, a node has found a number $p$ with a good combination of latency and delivery ratio. If the node increases its traffic load, the quality of the route will naturally go down. By maintaining several different values of $p$ and the associated statistics, the node can balance the load between different paths such that their quality values are kept equal. The node, thus, is able to maximize the quality of its connection with any node for any given amount of traffic.
+
+Finally, we will examine how nodes behave in a dynamic environment and what optimizations can be employed. In order to ensure that all known level-$i$ links exist, it is sufficient to send periodic messages between level-0 neighbors only. When some node $a$ goes offline, Algorithm~\ref{alg:routes} guarantees that all level-0 nodes will also erase the record of it. All level-1 neighbors of $a$ will be among those level-0 nodes, and will propagate the information to all other level-1 nodes. Continuing the same way, all level-$i$ nodes will remove the node $a$ as well. This strategy, however, creates too much traffic when $a$ constantly goes online and offine. In order to minimize the load, all level-$i$ neighbors of $a$ can keep their $G_{outa}$ variables (see Algorithm~\ref{alg:routes}) until they expire by time or size of the new $G_{outa}$ becomes smaller than the corresponding update.
+
+
+\section{Analysis}
+
+We will now roughly estimate the path-stretch of the proposed protocol. Each data packet is routed on level-0, level-1, ..., level-k until it finally reaches the destination. Assuming equal properties across all levels, it is reasonable to expect the number of physical hops traversed through level-$i$ be less than $r$ times smaller the number of physical hops traversed through level-$(i+1)$, for some constant $r$. Therefore, the total number of traversed hops must be a multiple of the number of hops traversed through the last level $k$, and only the level $k$ can be analyzed.
+
+We can also estimate the path-stretch associated with some level-$(i+1)$ network by a constant $q$ times the path-stretch of the underlying level-$i$ network. With the total number of physical nodes $N$ and the number of levels $k$ approximated as $C\log_2 N$, we have:
+
+\begin{equation*}
+    O(stretch) = q^{\displaystyle log_2 N} = N^{\displaystyle log_2 q}
+\end{equation*}
+
+Taking $\sqrt{N}$ as the average physical distance in the network \cite{Kleinrock}, we find the average number of traversed hops when sending data:
+
+\begin{equation*}
+    O(hops) = O(stretch \times \sqrt{N}) = N^{\displaystyle (log_2 q + 0.5)}
+\end{equation*}
+
+For example, when each new level increases the path-stretch by 10\%, we have \mbox{$ O(stretch) \approx \sqrt[7]{N} $} and $O(hops) \approx N^{0.64}$, which can be considered scalable in many situations. By changing the routing table sizes, $q$ can be adjusted as desired.
+
+
+\section{Simulation Results}
+
+\emph{TODO}
+
 
 % Generate the bibliography.
 \bibliography{bmlrp}
