@@ -1,13 +1,11 @@
-\begin{figure}
+\begin{figure*}[!t]
     \centering
 
-    \newcommand{\nodescl}{0.7}
+    \newcommand{\nodescl}{1}
     \newcommand{\edgescl}{1}
     \input{graphs.tex}
 
-    \begin{subfigure}[b]{0.25\textwidth}
-        \centering
-
+    \subfloat[Level-$i$ network] {
         \begin{tikzpicture}
             \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
             \wn (n1) at (\coordscl{1}, \coordscl{0}) {1};
@@ -44,14 +42,12 @@
                 ;
         \end{tikzpicture}
         
-        
-        \caption{Level-$i$ network}
         \label{fig:bmlrp-routes-all}
-    \end{subfigure}%
+    }%
     %
-    \begin{subfigure}[b]{0.25\textwidth}
-        \centering
-
+    \hfil%
+    %
+    \subfloat[Graph $G_0'$ of node 1] {
         \begin{tikzpicture}
             \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
             \Wn[draw=green] (n1) at (\coordscl{1}, \coordscl{0}) {1};
@@ -79,13 +75,12 @@
                 ;                
         \end{tikzpicture}
 
-        \caption{Graph $G_0'$ of node 1}
         \label{fig:bmlrp-routes-nb1}
-    \end{subfigure}%
+    }%
     %
-    \begin{subfigure}[b]{0.25\textwidth}
-        \centering
-
+    \hfil%
+    %
+    \subfloat[Graph $G_0'$ of node 4] {
         \begin{tikzpicture}
             \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
             \Bn[draw=green] (n4) at (\coordscl{0}, \coordscl{1}) {4};
@@ -114,13 +109,12 @@
                 ;
         \end{tikzpicture}
 
-        \caption{Graph $G_0'$ of node 4}
         \label{fig:bmlrp-routes-nb2}
-    \end{subfigure}%
+    }%
     %
-    \begin{subfigure}[b]{0.25\textwidth}
-        \centering
-
+    \hfil%
+    %
+    \subfloat[Graph $G$ of node 0] {
         \begin{tikzpicture}
             \wn[draw=blue] (n0) at (\coordscl{0}, \coordscl{0}) {0};
             \wn (n1) at (\coordscl{1}, \coordscl{0}) {1};
@@ -142,11 +136,9 @@
                 ;
         \end{tikzpicture}
 
-        \caption{Graph $G$ of node 0}
         \label{fig:bmlrp-routes-visible}
-    \end{subfigure}%
-    %
+    }
 
     \caption{Routes acquisition}
     \label{fig:bmlrp-routes}
-\end{figure}
+\end{figure*}

@@ -6,7 +6,12 @@
 \usepackage[usenames, dvipsnames]{color}
 \usepackage{url}
 \usepackage{tikz}
-\usepackage{subcaption}
+
+\ifCLASSOPTIONcompsoc
+    \usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\else
+    \usepackage[caption=false,font=footnotesize]{subfig}
+\fi
 
 \usepackage{amssymb}
 

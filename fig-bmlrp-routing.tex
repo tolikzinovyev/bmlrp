@@ -1,13 +1,11 @@
-\begin{figure}[!t]
+\begin{figure*}[!t]
     \centering
-
-    \newcommand{\nodescl}{0.55}
+    
+    \newcommand{\nodescl}{0.7}
     \newcommand{\edgescl}{1.3}
     \input{graphs.tex}
 
-    \begin{subfigure}[b]{0.35\textwidth}
-        \centering
-
+    \subfloat[Level 0] {
         \begin{tikzpicture}
             \Bn[draw=blue] (n0) at (0,0) {11100};
             \Wn (n1) at (\coordscl{1}, \coordscl{0}) {01100};
@@ -60,13 +58,12 @@
 
         \end{tikzpicture}
 
-        \caption{Level 0}
         \label{fig:bmlrp-routing-l0}
-    \end{subfigure}%
+    }%
     %
-    \begin{subfigure}[b]{0.23\textwidth}
-        \centering
-
+    \hfil%
+    %
+    \subfloat[Level 1] {
         \begin{tikzpicture}
             \Bn[draw=blue] (n1) at (\coordscl{1}, \coordscl{0}) {01100};
             \Bn (n6) at (\coordscl{2}, \coordscl{1}) {01010};
@@ -97,13 +94,12 @@
                 ;
         \end{tikzpicture}
 
-        \caption{Level 1}
         \label{fig:bmlrp-routing-l1}
-    \end{subfigure}%
+    }%
     %
-    \begin{subfigure}[b]{0.23\textwidth}
-        \centering
-
+    \hfil%
+    %
+    \subfloat[Level 2] {
         \begin{tikzpicture}
             \Bn[draw=blue] (n1) at (\coordscl{2}, \coordscl{0}) {01100};
             \Wn (n6) at (\coordscl{2}, \coordscl{1}) {01010};
@@ -129,13 +125,12 @@
                 ;
         \end{tikzpicture}
 
-        \caption{Level 2}
         \label{fig:bmlrp-routing-l2}
-    \end{subfigure}%
+    }%
     %
-    \begin{subfigure}[b]{0.19\textwidth}
-        \centering
-
+    \hfil%
+    %
+    \subfloat[Level 3] {
         \begin{tikzpicture}
             \Bn[draw=blue] (n6) at (\coordscl{0.75}, \coordscl{0}) {01010};
             \Bn (n9) at (\coordscl{0}, \coordscl{0.75}) {01011};
@@ -158,10 +153,9 @@
 
         \end{tikzpicture}
 
-        \caption{Level 3}
         \label{fig:bmlrp-routing-l3}
-    \end{subfigure}
-
+    }
+    
     \caption{Routing in BMLRP}
     \label{fig:bmlrp-routing}
-\end{figure}
+\end{figure*}
