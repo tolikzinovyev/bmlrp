@@ -92,7 +92,7 @@ After a node joins the physical network, it starts creating virtual links to the
 
 \input{fig-bmlrp-routes.tex}
 
-For simplicity, from now on we will label a level-$i$ node white if the $(i+1)$-th bit of its address is 0; otherwise the node is black. Figure~\ref{fig:bmlrp-routing} shows a simplified example of routing data from 11100 to 01000, with subfigures demonstrating different levels of the network with respect to the destination. The blue nodes denote the routing nodes; the red node on each level indicates the destination. Bold entries indicate nodes and links known by the routing node. The journey starts on the physical level depicted by Figure~\ref{fig:bmlrp-routing-l0}. The source and destination nodes differ in the first bit, therefore 11100 transmits the data to a close physical white node -- 01100. Figure~\ref{fig:bmlrp-routing-l1} shows Level-1 network with respect to the destination, where the routing node is now 01100. Because it is equal in color to the destination, 01100 will forward the data through one of its level-2 neighbors. When node 01010 receives the message, it will find the destination address in its routing table level~3 and will route the data through an intermidiate level-3 node.
+For simplicity, from now on we will label a level-$i$ node white if the $(i+1)$-th bit of its address is 0; otherwise the node is black. Figure~\ref{fig:bmlrp-routing} shows a simplified example of routing data from 11100 to 01000, with subfigures demonstrating different levels of the network with respect to the destination. The blue nodes denote the routing nodes; the red node on each level indicates the destination. Bold entries indicate nodes and links known by the routing node. The journey starts on the physical level depicted by Figure~\ref{fig:bmlrp-routing-l0}. The source and destination nodes differ in the first bit, therefore 11100 transmits the data to a close physical white node -- 01100. Figure~\ref{fig:bmlrp-routing-l1} shows Level-1 network with respect to the destination, where the routing node is now 01100. Because it is equal in color to the destination, 01100 will forward the data through one of its level-2 neighbors. When node 01010 receives the message, it will find the destination address in its routing table level~3 and will route the data through an intermediate level-3 node.
 
 We will now examine how nodes discover other close level-$i$ nodes.
 
@@ -109,7 +109,7 @@ We will now examine how nodes discover other close level-$i$ nodes.
 
         \item   For each connected neighbor $b$ node $a$ constructs a graph $G_b$ by merging the graphs received from all of its neighbors except $b$ and adding all direct edges to these neighbors, and adding the edge $a$--$b$. Node $a$ then calculates a subset $G_{outb}$ of $G_b$ defined as follows.
 
-        \item   Consider every graph chain $b$--$a$--$c_1$--$c_2$--...--$c_k$--$d$ in $G_b$, where $b$, $a$, $c_i$ $(1 \le i \le k)$, $d$ are different; call this graph chain $gc$. Without loss of generality, let $d$ be black. All nodes and vertices of $gc$ will be included in $G_{outb}$ if: 1) the nodes $a$, $c_i$, $d$ are white, and 2) for any $c_i$ there is no black node $f$ in $G_b$, such that the distance from $f$ to $c_i$ is smaller than the distance from $c_i$ to $d$ in $gc$ and the distance from $c_i$ to $b$ in $gc$.
+        \item   Consider every graph chain $b$--$a$--$c_1$--$c_2$--...--$c_k$--$d$ in $G_b$, where $b$, $a$, $c_i$ $(1 \le i \le k)$, $d$ are different; call this graph chain $gc$. Without loss of generality, let $a$ be white. All nodes and vertices of $gc$ will be included in $G_{outb}$ if: 1) the nodes $c_i$ are white, $d$ is black, and 2) for any $c_i$ there is no black node $f$ in $G_b$, such that the distance from $f$ to $c_i$ is smaller than the distance from $c_i$ to $d$ in $gc$ and the distance from $c_i$ to $b$ in $gc$.
 
         \item   Exclude node $b$ from $G_{outb}$.
 
@@ -147,7 +147,8 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
                 \State ConnectInside(${\rm NH}(x), 0$)
 
                 \For {$ y \in \cN(x) \setminus {\rm NH}(x) $}
-                    \State $used \gets \{false\}$
+                    \State $Used \gets \{false\}$
+                    \State $Used[x] \gets true$
                     \State ConnectNeighborhoods($x, y$)
                 \EndFor
             \EndFor
@@ -181,7 +182,7 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
                 \State \textbf{return}
             \EndIf
 
-            \State $w,b \gets \argmin_{x \in white, y \in black}{\rm XOR(x, y)}$
+            \State $w,b \gets \argmin_{x \in white, y \in black}{\rm XOR}(x, y)$
 
             \If {$bit(a, l) = 0$}
                 \If {$w = a$}
@@ -207,14 +208,14 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
         \algrestore{connect}
         
         \Procedure{ConnectNeighborhoods}{$from, to$}
-            \If {${\rm used}[to]$} 
+            \If {$Used[to]$} 
                 \State \textbf{return}      %\Comment {we were here before}
             \EndIf
                 
-            \State ${\rm used}[to] \gets true$
+            \State $Used[to] \gets true$
 
             \If {$ {\rm NH(to)} \ne \emptyset $}
-                \State $f, t \gets \argmin_{x \in {\rm NH}(from), y \in {\rm NH}(to)}{XOR(x, y)}$
+                \State $f, t \gets \argmin_{x \in {\rm NH}(from), y \in {\rm NH}(to)}{\rm XOR}(x, y)$
 
                 \If {$f = a$}
                     \State connect($t$)
@@ -235,7 +236,7 @@ Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show level-
 
 \input{fig-bmlrp-connect.tex}
 
-So far we have only discussed which nodes are necessary to connect to. A real implementation will however try to maintain a constant number of neighbors on each level. This assumption will be necessary for analysis in sections~\ref{sec:analysis:stretch} and \ref{sec:analysis:overhead}.
+So far we have only discussed which nodes are necessary to connect to. A real implementation will however try to maintain a constant number of closest neighbors on each level. This assumption will be necessary for analysis in sections~\ref{sec:analysis:stretch} and \ref{sec:analysis:overhead}.
 
 
 %\section{Additional Improvements}
@@ -262,9 +263,9 @@ two important connectivity properties maintained by the proposed protocol.
     Let a level-$i$ network be a connected graph. Then, level-$(i+1)$ network is also a connected graph.
 
     \begin{proof}
-        Assume, level-$(i+1)$ graph is not connected (1). Now, let $c_k$ and $a$ be vertices from unconnected graph components in level~$(i+1)$, such that the distance from $c_k$ to $a$ in level $i$ is minimized (2). Also, without loss of generality assume $c_k$ and $a$ are black in level~$i$. By the assumption (2), vertices $c_1,c_2,...,c_{k-1}$ from the shortest path chain $a$--$c_1$--$c_2$--...--$c_k$ must be white.
+        Assume, level-$(i+1)$ graph is not connected (1). Now, let $c_k$ and $a$ be vertices from two graph components in level-$(i+1)$ graph, such that the distance from $c_k$ to $a$ in level $i$ is minimized (2). Also, without loss of generality assume $c_k$ and $a$ are black in level~$i$. By the assumption (2), vertices $c_1,c_2,...,c_{k-1}$ from the shortest path chain $a$--$c_1$--$c_2$--...--$c_k$ must be white.
 
-        Assume, node $c_k$ does not know about $a$. Then, by Algorithm~\ref{alg:routes} some node $c_j$ does not forward the information about $a$ to $c_{j+1}$ because it knows such black node $b$ that the distance from $b$ to $c_t$ (for some $1 \le t \le j - 1$) is shorter than the distance from $a$ to $c_t$ and the distance from $c_t$ to $c_{j+1}$. If $c_t$ is not connected to either $a$ or $c_k$ in level $(i+1)$, then this must contradict the minimality defined in (2). Otherwise, if $c_t$ is connected to both $a$ and $c_k$ in level $(i+1)$, $a$ and $c_k$ are connected and this also contradicts (2). Hence, $c_k$ must know a path to $a$. Similarly, $a$ must know a path to $c_k$.
+        Assume, node $c_k$ does not know about $a$. Then, by Algorithm~\ref{alg:routes} some node $c_j$ does not forward the information about $a$ to $c_{j+1}$ because it knows such black node $b$ that the distance from $b$ to $c_t$ (for some $1 \le t \le j - 1$) is shorter than the distance from $a$ to $c_t$ and the distance from $c_t$ to $c_{j+1}$. If $c_t$ is not connected to either $a$ or $c_k$ in level $(i+1)$, then this must contradict the minimality defined in (2). Otherwise, if $c_t$ is connected to both $a$ and $c_k$ in level $(i+1)$, $a$ and $c_k$ are connected in level $(i+1)$ and this also contradicts (2). Hence, $c_k$ must know a path to $a$. Similarly, $a$ must know a path to $c_k$.
 
         Algorithm~\ref{alg:connect} ensures that all black neighbors of connected white nodes in level~$i$ are connected in level~$(i+1)$. Therefore, $a$ and $c_k$ must be connected in level~$(i+1)$, leading to the contradiction of the original assumption (1).
     \end{proof}
@@ -276,7 +277,7 @@ two important connectivity properties maintained by the proposed protocol.
     Let a level-$i$ network be a connected graph. Then, every node in this network must know at least one level-$i$ node of the opposite color, if such exists.
 
     \begin{proof}
-        Suppose, a node $c_k$ does not know any node of the opposite color. Without loss of generality, let $c_k$ be black. Now, let $a$ be a white node, such that the distance from $a$ to $c_k$ is minimized. By this assumption, all nodes $c_j$ along the shortest path $a$--$c_1$--$c_2$--...--$c_k$ must be black. Similarly to the previous proof, $c_k$ must know a path to $a$, which contradicts to the original assumption.
+        Suppose, a node $c_k$ does not know any node of the opposite color. Without loss of generality, let $c_k$ be black. Now, let $a$ be a white node, such that the distance from $a$ to $c_k$ is minimized. By this assumption, all nodes $c_j$ along the shortest path $a$--$c_1$--$c_2$--...--$c_k$ must be black. Similarly to the previous proof, $c_k$ must know a path to $a$, which contradicts the original assumption.
     \end{proof}
 
     \label{thm:connectivity-colors}
@@ -302,7 +303,7 @@ Taking $C\sqrt{N}$ as the average physical distance in the network \cite{Kleinro
 For example, when each new level increases the path-stretch by 10\%, we have $O({\rm stretch}) \approx \sqrt[7]{N}$ and $O({\rm hops}) \approx N^{0.64}$, which can be considered scalable in many situations. By changing the routing table sizes, $q$ can be adjusted as desired.
 
 
-\subsection{Routing overhead}
+\subsection{Protocol overhead}
 \label{sec:analysis:overhead}
 \emph{TODO}
 
