@@ -291,7 +291,7 @@ Given Theorems~\ref{thm:connectivity-levels}~and~\ref{thm:connectivity-colors}, 
 
 We will now roughly estimate the path-stretch of the proposed protocol. Each data packet is routed on level-0, level-1, ..., level-$k$ networks with respect to the destination until it finally reaches the destination. We assume equal properties across all levels 0, ..., $k - 1$, including each node maintaining a constant number $M$ of closest neighbors on each level.
 
-The path stretch when routing data over level-$(i+1)$ network has to be some constant multiple $q$ ($q \ge 1$) of the stretch when routing data over the underlying level-$i$ network. Because $C_0\sqrt{N}$ is the average distance in a wireless network of $N$ identical uniformly placed nodes~\cite{Kleinrock} and level-$i$ nodes only send data to close level-$(i+1)$ nodes, the distance in physical network between routing level-$i$ node and routing level-$(i+1)$ node must be proportional to $\sqrt{2^i}$. We also know that the maximum level $k$ over which data is routed is less than $log_2N$. We now find the average number of traversed hops:
+The path stretch when routing data over level-$(i+1)$ network has to be some constant multiple $q$ ($q \ge 1$) of the stretch when routing data over the underlying level-$i$ network. Because $C_0\sqrt{N}$ is the average distance in a wireless network of $N$ identical uniformly placed nodes~\cite{Kleinrock} and level-$i$ nodes only route data to close level-$(i+1)$ nodes, the distance in physical network between a routing level-$i$ node and a routing level-$(i+1)$ node must be proportional to $\sqrt{2^i}$. We also know that the maximum level $k$ over which data is routed is less than $log_2N$. We now find the average number of traversed hops:
 \begin{equation*}
 \begin{split}
     {\rm hops} & = C (1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{k-1}} q^{k-1} + \sqrt{N} q^k) \\
@@ -301,20 +301,20 @@ The path stretch when routing data over level-$(i+1)$ network has to be some con
                & < C \Big( \sqrt{N} q^k \frac{\sqrt{2} q}{\sqrt{2}q - 1} + \sqrt{N} q^k \Big)  \\
                & = C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) \sqrt{N} q^k  \\
                & < C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) \sqrt{N} q^{log_2 N}  \\
-               & = C \Big( \frac{2 - \sqrt{2}q}{1 - \sqrt{2}q} \Big) N^{\frac{1}{2} + log_2 q}
+               & = C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) N^{\frac{1}{2} + log_2 q}
 \end{split}
 \end{equation*}
 
 Thus, the upper bound for the average number of hops is:
 
 \begin{equation*}
-    O({\rm hops}) = \Big( \frac{2 - \sqrt{2}q}{1 - \sqrt{2}q} \Big) N^{\frac{1}{2} + log_2 q}
+    O({\rm hops}) = \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1}  \Big) N^{\frac{1}{2} + log_2 q}
 \end{equation*}
 
 Dividing by $\sqrt{N}$ we find the upper bound for the average path stretch:
 
 \begin{equation*}
-    O({\rm stretch}) = \Big( \frac{2 - \sqrt{2}q}{1 - \sqrt{2}q} \Big) N^{log_2 q}
+    O({\rm stretch}) = \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) N^{log_2 q}
 \end{equation*}
 
 For example, when each new level increases the path-stretch by 10\%, we have $O({\rm stretch}) \approx \sqrt[7]{N}$ and $O({\rm hops}) \approx N^{0.64}$, which can be considered scalable in many situations. By changing the routing table sizes, $q$ can be adjusted as desired.
@@ -334,22 +334,31 @@ Given the smallest level $k$ on which a node $a$ sees all nodes of the level-$k$
 Sending information to a level-$i$ neighbor requires sending the information over level-$(i - 1)$ network. Section~\ref{sec:analysis:overhead} shows that the number of physical hops traversed is bounded by 
 %
 \begin{equation*}
-    1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{k-1}} q^{k-1} < \frac{ (\sqrt{2}q)^k }{\sqrt{2}q - 1}
+    1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{i-1}} q^{i-1} < \frac{ (\sqrt{2}q)^i }{\sqrt{2}q - 1}
 \end{equation*}
 %
 The amount of traffic a single node creates in the network to communicate with its level-$i$ neighbors:
 %
 \begin{equation*}
-    O(T(i)) = \frac{ (\sqrt{2}q)^k }{\sqrt{2}q - 1}
+    O(T(i)) = \frac{ (\sqrt{2}q)^i }{\sqrt{2}q - 1}
 \end{equation*}
 
 Thus, the total protocol overhead a single node creates in the network is given by
 %
 \begin{equation*}
-    O({\rm overhead}) = O\Big( \sum_{i = 0}^{k} F(i)T(i) \Big) = \sum_{i = 0}^{k} \frac{ \big( \frac{q}{\sqrt{2}} \big)^i }{ \sqrt{2}q - 1 }
+\begin{split}
+    O({\rm overhead}) & = O\Big( \sum_{i = 0}^{k} F(i)T(i) \Big) = \sum_{i = 0}^{k} \frac{q^i}{\sqrt{2}q - 1}   \\
+    O({\rm overhead}) & = \frac{q}{ (\sqrt{2}q - 1)(q - 1) } N^{log_2q}
+\end{split}
 \end{equation*}
 %
-For $q < \sqrt{2}$, the protocol overhead is bounded by the logarithm of the total number of nodes $N$.
+%\begin{equation*}
+%\begin{split}
+%      & \sum_{i = 0}^{k} \frac{q^i}{\sqrt{2}q - 1} < \frac{q^k}{\sqrt{2}q - 1} \frac{q}{q - 1} <        \\
+%    < & \frac{q}{ (\sqrt{2}q - 1)(q - 1) } q^{log_2N} = \frac{q}{ (\sqrt{2}q - 1)(q - 1) } N^{log_2q}   \\
+%\end{split}
+%\end{equation*}
+%
 
 
 \subsection{Average node degree}
@@ -357,7 +366,7 @@ For $q < \sqrt{2}$, the protocol overhead is bounded by the logarithm of the tot
 
 Despite many advantages, our protocol does not guarantee that the routing table sizes for higher level networks remain low. To analyze this aspect, we performed an implicit simulation of the minimal connecting (Algorithm~\ref{alg:connect}) to track the average vertex degree of nodes across each level.
 
-In the figure below, the black line shows the simulation result on a static wireless network of $2^{14}$ identical nodes uniformly distributed in a square area. As you can see, the average number of neighbors first stabilizes around value 6 and then continues decreasing as the network level $i$ grows. Additionally, we randomly connected 1\%, 5\% and 10\% nodes in the network independent of their coordinates. The blue, orange and red lines show that when random long-range edges are added, the higher level networks become close world networks and the number of mandarory connections fails to decrease. The impact, however, is small; the red line demonstrates that even when 10\% of the nodes are randomly wired, the average number of level-$i$ neighbors in the network does not exceed 25 for $2^{14}$ nodes.
+In the figure below, the black line shows the simulation result on a static wireless network of $2^{14}$ identical nodes uniformly distributed in a square area. As you can see, the average number of neighbors first stabilizes around value 6 and then continues decreasing as the network level $i$ grows. Additionally, we randomly connected 1\%, 5\% and 10\% nodes in the network independently of their coordinates. The blue, orange and red lines show that when random long-range edges are added, the higher level networks become close world networks and the number of mandarory connections fails to decrease. The impact, however, is small; the red line demonstrates that even when 10\% of the nodes are randomly wired, the average number of level-$i$ neighbors in the network does not exceed 25 for $2^{14}$ nodes.
 
 \begin{figure}[H]
     \includegraphics[width=0.95\linewidth]{degrees}
