@@ -289,24 +289,67 @@ Given Theorems~\ref{thm:connectivity-levels}~and~\ref{thm:connectivity-colors}, 
 \subsection{Path stretch}
 \label{sec:analysis:stretch}
 
-We will now roughly estimate the path-stretch of the proposed protocol. Each data packet is routed on level-0, level-1, ..., level-k networks with respect to the destination until it finally reaches the destination. Assuming equal properties across all levels, it is reasonable to expect the number of physical hops traversed through level~$i$ be less than $r$ times smaller the number of physical hops traversed through level~$(i+1)$ for some constant $r$ ($0 \le r < 1$). Therefore, the total number of traversed physical hops must be a constant multiple of the number of physical hops traversed through the last level~$k$, and only the level~$k$ should be analyzed.
+We will now roughly estimate the path-stretch of the proposed protocol. Each data packet is routed on level-0, level-1, ..., level-$k$ networks with respect to the destination until it finally reaches the destination. We assume equal properties across all levels 0, ..., $k - 1$, including each node maintaining a constant number $M$ of closest neighbors on each level.
 
-We can also estimate the path-stretch when routing over level-$(i+1)$ network by a constant $q$ times the path-stretch of the underlying level-$i$ network. With the total number of physical nodes $N$ and the number of levels $k$ approximated as $C\log_2 N$, we have:
+The path stretch when routing data over level-$(i+1)$ network has to be some constant multiple $q$ ($q \ge 1$) of the stretch when routing data over the underlying level-$i$ network. Because $C_0\sqrt{N}$ is the average distance in a wireless network of $N$ identical uniformly placed nodes~\cite{Kleinrock} and level-$i$ nodes only send data to close level-$(i+1)$ nodes, the distance in physical network between routing level-$i$ node and routing level-$(i+1)$ node must be proportional to $\sqrt{2^i}$. We also know that the maximum level $k$ over which data is routed is less than $log_2N$. We now find the average number of traversed hops:
 \begin{equation*}
-    \Theta({\rm stretch}) = q^{\displaystyle \log_2 N} = N^{\displaystyle \log_2 q}
+\begin{split}
+    {\rm hops} & = C (1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{k-1}} q^{k-1} + \sqrt{N} q^k) \\
+               & < C \Big( (\sqrt{2} q)^{k-1} \sum_{i = 0}^{\infty} (\sqrt{2}q)^{-i} + \sqrt{N} q^k \Big) \\
+               & = C \Big( (\sqrt{2} q)^{k-1} \frac{1}{1 - (\sqrt{2}q)^{-1}} + \sqrt{N} q^k \Big)  \\
+               & = C \Big( (\sqrt{2} q)^{k-1} \frac{\sqrt{2} q}{\sqrt{2}q - 1} + \sqrt{N} q^k \Big)  \\
+               & < C \Big( \sqrt{N} q^k \frac{\sqrt{2} q}{\sqrt{2}q - 1} + \sqrt{N} q^k \Big)  \\
+               & = C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) \sqrt{N} q^k  \\
+               & < C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) \sqrt{N} q^{log_2 N}  \\
+               & = C \Big( \frac{2 - \sqrt{2}q}{1 - \sqrt{2}q} \Big) N^{\frac{1}{2} + log_2 q}
+\end{split}
 \end{equation*}
 
-Taking $C\sqrt{N}$ as the average physical distance in the network \cite{Kleinrock}, we find the average number of traversed hops when sending data:
+Thus, the upper bound for the average number of hops is:
+
 \begin{equation*}
-    \Theta({\rm hops}) = \Theta( {\rm stretch} \times \sqrt{N}) = N^{\displaystyle (\log_2 q + 0.5)}
+    O({\rm hops}) = \Big( \frac{2 - \sqrt{2}q}{1 - \sqrt{2}q} \Big) N^{\frac{1}{2} + log_2 q}
 \end{equation*}
+
+Dividing by $\sqrt{N}$ we find the upper bound for the average path stretch:
+
+\begin{equation*}
+    O({\rm stretch}) = \Big( \frac{2 - \sqrt{2}q}{1 - \sqrt{2}q} \Big) N^{log_2 q}
+\end{equation*}
+
 For example, when each new level increases the path-stretch by 10\%, we have $O({\rm stretch}) \approx \sqrt[7]{N}$ and $O({\rm hops}) \approx N^{0.64}$, which can be considered scalable in many situations. By changing the routing table sizes, $q$ can be adjusted as desired.
 
 
 \subsection{Protocol overhead}
 \label{sec:analysis:overhead}
-\emph{TODO}
 
+We will now attempt to estimate size of the protocol overhead under Random Waypoint motion of $N$ uniformly distributed nodes over area $A$ with a constant node density.
+
+Given the smallest level $k$ on which a node $a$ sees all nodes of the level-$k$ network with respect to $a$, the node $a$ must exchange protocol messages with all of its $M$ neighbors on each level $0 \le i \le k$. The average physical distance to the $M$ physical neighbors of $a$ is proportional to $\sqrt{A / N}$. Similarly, the average distance (both geographical and in hops) to $M$ level-$i$ neighbors is proportional to $\sqrt{A / (N / 2^i)} = \sqrt{2^i (A / N)}$. The node density $(A / N)$ is constant; therefore, the average distance to $M$ level-$i$ neighbors is proportional to $\sqrt{2^i}$. Node $a$ connects to a level-$i$ node $b$ and disconnects from the $M$'s level-$i$ neighbor $c$ if the distance to $b$ becomes less than the distance to $c$. Hence, it is reasonable to expect the frequency of connects/disconnects and the frequency of protocol messages exchanged with level-$i$ nodes to be proportional $1 / \sqrt{2^i}$:
+%
+\begin{equation*}
+    F(i) \sim \sqrt{\frac{1}{2^i}}
+\end{equation*}
+
+Sending information to a level-$i$ neighbor requires sending the information over level-$(i - 1)$ network. Section~\ref{sec:analysis:overhead} shows that the number of physical hops traversed is bounded by 
+%
+\begin{equation*}
+    1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{k-1}} q^{k-1} < \frac{ (\sqrt{2}q)^k }{\sqrt{2}q - 1}
+\end{equation*}
+%
+The amount of traffic a single node creates in the network to communicate with its level-$i$ neighbors:
+%
+\begin{equation*}
+    O(T(i)) = \frac{ (\sqrt{2}q)^k }{\sqrt{2}q - 1}
+\end{equation*}
+
+Thus, the total protocol overhead a single node creates in the network is given by
+%
+\begin{equation*}
+    O({\rm overhead}) = O\Big( \sum_{i = 0}^{k} F(i)T(i) \Big) = \sum_{i = 0}^{k} \frac{ \big( \frac{q}{\sqrt{2}} \big)^i }{ \sqrt{2}q - 1 }
+\end{equation*}
+%
+For $q < \sqrt{2}$, the protocol overhead is bounded by the logarithm of the total number of nodes $N$.
 
 \subsection{Average node degree}
 \label{sec:analysis:nodedegree}
