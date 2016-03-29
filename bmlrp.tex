@@ -351,9 +351,20 @@ Thus, the total protocol overhead a single node creates in the network is given 
 %
 For $q < \sqrt{2}$, the protocol overhead is bounded by the logarithm of the total number of nodes $N$.
 
+
 \subsection{Average node degree}
 \label{sec:analysis:nodedegree}
-\emph{TODO}
+
+Despite many advantages, our protocol does not guarantee that the routing table sizes for higher level networks remain low. To analyze this aspect, we performed an implicit simulation of the minimal connecting (Algorithm~\ref{alg:connect}) to track the average vertex degree of nodes across each level.
+
+In the figure below, the black line shows the simulation result on a static wireless network of $2^{14}$ identical nodes uniformly distributed in a square area. As you can see, the average number of neighbors first stabilizes around value 6 and then continues decreasing as the network level $i$ grows. Additionally, we randomly connected 1\%, 5\% and 10\% nodes in the network independent of their coordinates. The blue, orange and red lines show that when random long-range edges are added, the higher level networks become close world networks and the number of mandarory connections fails to decrease. The impact, however, is small; the red line demonstrates that even when 10\% of the nodes are randomly wired, the average number of level-$i$ neighbors in the network does not exceed 25 for $2^{14}$ nodes.
+
+\begin{figure}[H]
+    \includegraphics[width=0.95\linewidth]{degrees}
+
+    %\caption{ds}
+    \label{fig:degrees}
+\end{figure}
 
 
 \section{Conclusion}
