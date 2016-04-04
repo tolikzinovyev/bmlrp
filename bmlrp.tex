@@ -29,18 +29,16 @@
 \DeclareMathOperator*{\argmin}{\arg\!\min}
 
 \newcommand{\urbanxor}{URBAN\_XOR}
+\newcommand{\cP}{{\mathcal{P}}}
 \newcommand{\cN}{{\mathcal{N}}}
 
-\title{Binary Multi-Level Routing Protocol for Ad Hoc Networks}
+\title{Binary Multi-Level Routing Protocol for Mobile Ad Hoc Networks}
 
 \author{
   Anatoliy Zinovyev and Brian L. Mark \\
-  Dept. of  Electrical and Computer Eng. \\
-  Volgenau School of Engineering \\
+  email:   \{ azinovye, bmark \}@gmu.edu \\
+   \\
   George Mason University \\
-  4400 University Drive, MS 1G5 \\
-  Fairfax, VA 22030 \\
-  email:   \{  azinovye, bmark \}@gmu.edu \\
 }
 
 
@@ -49,7 +47,7 @@
 \maketitle
 
 \begin{abstract}
-Routing in mobile ad hoc networks (MANETs) presents a big challenge, especially when support for a large number of nodes is needed. This paper extends the local visibility concept of a DHT-based \urbanxor\ routing protocol \cite{urbanxor}, aiming to reduce routing table size while keeping efficiency high. Our main contribution is providing a guarantee that if any two nodes are connected through other nodes, they are able to communicate with each other. We propose a new route acquisition method that aims to reduce the total amount of overhead traffic and handle mobility well. In addition, we introduce an abstraction for describing the network structure that makes it easy to understand and analyze. Finally, we make our first attempt to simulate the protocol on a large number of nodes to support our claims. Compared to existing approaches in ad hoc routing, the new protocol supports the following features: guaranteed delivery, scalability, absence of single points of failure, low path-stretch, support of multi-path connectivity, mobility.
+Routing in mobile ad hoc networks (MANETs) presents a big challenge, especially when support for a large number of nodes is needed. This paper extends the local visibility concept of the recent DHT-based \urbanxor~routing protocol, which aims to reduce routing table sizes while keeping efficiency high. Our main contribution is providing a guarantee that if any two nodes are connected through other nodes, they are able to communicate with each other. We propose a new route acquisition method that aims to reduce the total amount of overhead traffic and handle mobility well. In addition, we introduce an abstraction for describing the network structure that makes it easy to understand and analyze. Finally, we make our first attempt to simulate the protocol on a large number of nodes to support our claims. Compared to existing approaches in ad hoc routing, the new protocol supports the following features:  scalability, guaranteed connectivity assuming network convergence, absence of single points of failure, low path-stretch, and mobility.
 \end{abstract}
 
 \input{fig-bmlrp-routing.tex}
@@ -57,18 +55,21 @@ Routing in mobile ad hoc networks (MANETs) presents a big challenge, especially 
 \section{Introduction}
 \label{sec:introduction}
 
-DHT-based routing protocols in MANETs are interesting for number of reasons. First is their scalability properties achieved by creating a special network structure and reducing the routing table size. Second is their simplicity relative to clustering-based approaches. In clustering-based protocols, nodes are divided into groups, which are subsequently split into smaller groups~\cite{Hong}. Although, such an approach can be scalable to larger networks, it can be difficult to implement. In addition, clustering-based protocols often use critical nodes for controlling clusters \cite{Hong} and dynamic addresses \cite{Hong, dart, ntk}, which may compromise the stability of the network.
+Over the past twenty years, a number of routing protocols for mobile ad hoc networks (MANETs) have been developed.
+In reactive protocols such as AODV~\cite{aodv} and DSR~\cite{dsr}, routes are set up  on demand via route request packets.  Proactive protocols, such as OLSR~\cite{olsr} maintain routes to destinations by periodically disseminating routing information throughout the network. Reactive protocols generally perform better in mobile scenarios, but can have high latencies and introduce high traffic overhead during route setup.  Hybrid protocols such as ZRP~\cite{zrp} attempt to combine the features of the reactive and proactive approaches.  The aforementioned protocols do not scale to networks with large numbers of nodes, e.g., in the thousands or several thousands.  Hierarchical protocols, such as FSR~\cite{fsr} and CBRP~\cite{cbrp} are designed to have improved scalability, but can be challenging to implement in practice.  
+  
+Recently, MANET routing protocols based on routing schemes for distributed hash tables (DHTs) have been proposed.  DHT-based MANET routing protocols  are interesting for several reasons. First is their scalability properties achieved by creating a special network structure and reducing the routing table size. Second is their simplicity relative to clustering-based approaches. In clustering-based protocols, nodes are divided into groups, which are subsequently split into smaller groups~\cite{Hong}. Although, such an approach can be scalable to larger networks, it can be difficult to implement in practice. In addition, clustering-based protocols often use critical nodes for controlling clusters~\cite{Hong} and dynamic addresses \cite{Hong,dart,ntk}, which may compromise the stability of the network.
 
-DHT-based routing, however, often suffers from the mismatch problem resulting in a high path-stretch\footnote{The path-stretch is defined as $ \frac{{\rm len}(a,b)}{{\rm dist}(a,b)} $, where ${\rm len}(a,b)$ is the route length between nodes $a$ and $b$ found by the routing protocol and ${\rm dist}(a,b)$ is length of the shortest path between $a$ and $b$. The length of a path can be measured as either the latency or the number of hops}. In such networks, every node has its own logical identifier (LID) and also stores information about a portion of other nodes with certain LIDs, such that any node should be able to send information to any other node. Because in such networks routing is done on top of the logical structure and the logical addresses do not necessarily resemble the physical location, the number of physical hops through which data is traversed is often far from being optimal \cite{Abid}.
+DHT-based routing, however, often suffers from the mismatch problem resulting in a high path-stretch\footnote{The path-stretch is defined as $ \frac{{\rm len}(a,b)}{{\rm dist}(a,b)} $, where ${\rm len}(a,b)$ is the route length between nodes $a$ and $b$ found by the routing protocol and ${\rm dist}(a,b)$ is the length of the shortest path between $a$ and $b$. The length of a path can be measured as either the latency or the number of hops}. In such networks, every node has its own logical identifier (LID) and also stores information about a portion of other nodes with certain LIDs, such that any node should be able to send information to any other node. Because in such networks routing is done on top of the logical structure and the logical addresses do not necessarily resemble the physical location, the number of physical hops through which data traverses is often far from being optimal \cite{Abid}.
 
 A number of interesting solutions have been proposed for minimizing the path-stretch. For example, the Virtual Ring Routing protocol builds a virtual ring where nodes are ordered according to their LIDs~\cite{VRR}. Each node maintains a record of constant number of nodes with closest addresses and routes to them. When routing data, the next hop with the closest address to the destination's identifier is chosen. The guarantee of constant path-stretch relies on the fact that each node knows $O(\sqrt{N})$ nodes, and thus the probability that a node will know the route to the destination is $O(\frac{1}{\sqrt{N}})$. Therefore, the expected number of traversed nodes is $O(\sqrt{N})$~\cite{VRR}. Another approach is taken by the 3D~routing protocol, which ensures good path-stretch properties by embedding the node LIDs into a 3-dimensional space~\cite{3drp}. Thus, forwarding data is as simple as sending it in the ``right direction.'' Both approaches, however, fail to deal with the network mobility and merging/splitting operations. 
 
-The protocol proposed in this paper is closest in approach to the recent
-\urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Each node maintains $n$ buckets for storing information about other nodes with address prefixes equal to the node's address prefix. When routing information to any node, the next hop with the longest matching prefix is chosen from among the $n$~buckets. Path efficiency is achieved by employing the concept of local visibility which prioritizes physically close nodes in the routing table. By maintaining this network structure, mobility support turns out to be better than in other protocols.
+The Binary Multi-level Routing Protocol (BMLRP) proposed in this paper is closest in approach to the recent KDSR~\cite{kdsr} and \urbanxor~\cite{Pasquini} protocols, which employ a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Each node maintains $n$ buckets for storing information about other nodes with address prefixes equal to the node's address prefix. When routing information to any node, the next hop with the longest matching prefix is chosen from among the $n$~buckets. Path efficiency 
+in \urbanxor~is achieved by employing the concept of local visibility, which prioritizes physically close nodes in the routing table. By maintaining this network structure, mobility support turns out to be better than in other protocols.
 
-The \urbanxor\ protocol, however, has several drawbacks. The most prominent one is the absence of a guarantee that if two nodes are indirectly connected they are able to communicate \cite{Pasquini}. Another objection is the method of acquiring paths to other nodes, which tends to generate much overhead traffic in mobile scenarios. The protocol proposed in this paper aims to solve both problems altogether. {\color{orange} In addition, it decreases the path-stretch even further by incorporating a novel algorithm that selects near-optimal routes without maintaining them.}
+The \urbanxor\ protocol, however, has several drawbacks. The most prominent one is the absence of a guarantee that if two nodes are indirectly connected they are able to communicate \cite{Pasquini}. Another objection is the method of acquiring paths to other nodes, which tends to generate much overhead traffic in mobile scenarios.  The protocol proposed in this paper aims to solve both problems altogether. In addition,  BMLRP decreases the path stretch even further by incorporating a novel algorithm that selects near-optimal routes without maintaining them.
 
-The rest of the paper is organized as follows. Section~\ref{sec:urbanxor} describes the \urbanxor\ routing protocol in more detail. Section~\ref{sec:bmlrp} introduces the new protocol, which overcomes the drawbacks of \urbanxor. 
+The rest of the paper is organized as follows. Section~\ref{sec:urbanxor} describes the \urbanxor\ routing protocol in more detail. Section~\ref{sec:bmlrp} introduces BMRLP, which overcomes the major drawbacks of \urbanxor. 
 Section~\ref{sec:analysis} discusses routing properties of the new approach. 
 Section~\ref{sec:conclusion} concludes the paper.
 
@@ -83,7 +84,7 @@ After the node connects to its direct (both physical and virtual) neighbors, it 
 Similarly to Kademlia DHT \cite{kademlia}, when node $a$ is routing data to $b$, the first node selects an address $c$ from its routing table such that $l(b,c)$ is maximized. Because each next node that forwards the data has longer common prefix with the destination, the data eventually arrives. For this to be always true, each node in the network must have at least one entry in each bucket if an appropriate identifier exists. The \urbanxor\ protocol, however, might maintain empty buckets and fail to satisfy the property \cite{Pasquini}. When two physical neighbors disconnect, all virtual routes passing through the destroyed link must be eliminated \cite{Pasquini}. This may result in considerable traffic overhead generated when the node is moving or has an unstable link to a physical neighbor.
 
 
-\section{The Proposed Protocol}
+\section{The Proposed Protocol:  BMLRP}
 \label{sec:bmlrp}
 
 Consider a node with a unique permanent $n$-bit address $a$, similarly to \urbanxor. We say that all nodes $b$ in the network form a level-$i$ network with respect to $a$ if $l(a,b) \ge i$. For instance, the level-0 network will contain all nodes, which is also defined as \emph{physical network}. Level-3 network will contain all nodes that have the first 3 bits equal to the first 3 bits of $a$. Because we assume all identifiers are distributed evenly, the number of level-3 nodes will be approximately 8 times smaller than the physical network size. As a general rule, the level-$i$ network contains approximately $\frac{N}{2^i}$ nodes, where $N$ is the size of the physical network.
@@ -109,7 +110,7 @@ We will now examine how nodes discover other close level-$i$ nodes.
 
         \item   For each connected neighbor $b$ node $a$ constructs a graph $G_b$ by merging the graphs received from all of its neighbors except $b$ and adding all direct edges to these neighbors, and adding the edge $a$--$b$. Node $a$ then calculates a subset $G_{outb}$ of $G_b$ defined as follows.
 
-        \item   Consider every graph chain $b$--$a$--$c_1$--$c_2$--...--$c_k$--$d$ in $G_b$, where $b$, $a$, $c_i$ $(1 \le i \le k)$, $d$ are different; call this graph chain $gc$. Without loss of generality, let $a$ be white. All nodes and vertices of $gc$ will be included in $G_{outb}$ if: 1) the nodes $c_i$ are white, $d$ is black, and 2) for any $c_i$ there is no black node $f$ in $G_b$, such that the distance from $f$ to $c_i$ is smaller than the distance from $c_i$ to $d$ in $gc$ and the distance from $c_i$ to $b$ in $gc$.
+        \item   Consider every path $b$--$a$--$c_1$--$c_2$--...--$c_k$--$d$ in $G_b$, where $b$, $a$, $c_i$ $(1 \le i \le k)$, $d$ are different; call this path $\cP$. Without loss of generality, let $a$ be white. All nodes and edges of $\cP$ will be included in $G_{outb}$ if: 1) the nodes $c_i$ are white, $d$ is black, and 2) for any $c_i$ there is no black node $f$ in $G_b$, such that the distance from $f$ to $c_i$ is smaller than the distance from $c_i$ to $d$ in $\cP$ and the distance from $c_i$ to $b$ in $\cP$.
 
         \item   Exclude node $b$ from $G_{outb}$.
 
@@ -121,11 +122,13 @@ We will now examine how nodes discover other close level-$i$ nodes.
     \label{alg:routes}
 \end{algorithm}
 
-In Figure~\ref{fig:bmlrp-routes} node 0 connects to nodes 1 and 4. By Algorithm~\ref{alg:routes}, node's 1 graph $G_0$ is depicted in Figure~\ref{fig:bmlrp-routes-nb1}. Chains that will be included in $G_{out0}$ are 0--1--5--4, 0--1--5--6, 0--1--2--6. Chain 0--1--2--3--7 will not be included because the distance from 6 to 2 is shorter than both chains 0--1--2 and 2--3--7. Figure~\ref{fig:bmlrp-routes-nb2} shows a similar graph of node 4. Here, the only 2 chains satisfying the requirement are 0--4--5 and 0--4--8. Node 0 combines the information received from the nodes 1,4 and forms a routing table $G$ depicted in Figure~\ref{fig:bmlrp-routes-visible}.
+In Figure~\ref{fig:bmlrp-routes}, node~0 connects to nodes~1 and 4. By 
+Algorithm~\ref{alg:routes}, node 0's level-1 graph $G_0$ is depicted in Figure~\ref{fig:bmlrp-routes-nb1}. Paths that will be included in $G_{out0}$ are 0--1--5--4, 0--1--5--6, 0--1--2--6. Path 0--1--2--3--7 will not be included because the distance from 6 to 2 is shorter than both paths 0--1--2 and 2--3--7. Figure~\ref{fig:bmlrp-routes-nb2} shows a similar graph of node 4. Here, the only 2 paths satisfying the requirement are 0--4--5 and 0--4--8. Node~0 combines the information received from the nodes 1,4 and forms a routing table $G$ depicted in Figure~\ref{fig:bmlrp-routes-visible}.
 
-All updates of links communicated between neighbors are sent in a proper order. The strategy is to proactively maintain only up-to-date routes. This can be explained as follows. Suppose, node $a$ knows about link $b$--$c_1$ that breaks. By the Algorithm~\ref{alg:routes}, for every graph chain $b$--$c_1$--$c_2$--...--$c_k$--$a$ stored in memory of $a$, $c_k$--$a$ and every connection $c_j$--$c_{j+1}$ must be alive. Therefore, if nodes $b$ and $c_1$ disconnect, the information will be propagated through every such chain and record of the link will be erased.
+All updates of links communicated between neighbors are sent in a proper order. The strategy is to proactively maintain only up-to-date routes. This can be explained as follows. Suppose, node $a$ knows about link $b$--$c_1$ that breaks. By Algorithm~\ref{alg:routes}, for every path $b$--$c_1$--$c_2$--...--$c_k$--$a$ stored in memory of $a$, $c_k$--$a$ and every connection $c_j$--$c_{j+1}$ must be alive. Therefore, if nodes $b$ and $c_1$ disconnect, the information will be propagated through every such path and record of the link will be erased.
 
-To ensure connectivity between any two nodes in the network, it is sufficient to make every same-color node in level-$i$ graph $G$ a neighbor on level~$(i+1)$. It can be foreseen, however, that this will lead to big routing tables on higher levels. Therefore, a more restrictive approach is needed. Algorithm~\ref{alg:connect} characterizes which nodes are necessary to connect to in order to satisfy the connectivity requirement. Node $a$ indicates the current node. The graph $G$ is assumed to be a level-$i$ routing table of $a$. $\cN(x)$ denotes the set of all neighbors of $x$ in $G$. The procedure  connect$(x)$ indicates that $x$ will become a level-$(i+1)$ neighbor of $a$. Function bit$(node, l)$ returns the $(i + l)$-th bit of the $node$'s address, assuming the first bit is number 0.
+To ensure connectivity between any two nodes in the network, it is sufficient to make every same-color node in level-$i$ graph $G$ a neighbor on level~$(i+1)$. It can be foreseen, however, that this will lead to big routing tables on higher levels. Therefore, a more restrictive approach is needed. Algorithm~\ref{alg:connect} characterizes which nodes are necessary to connect to in order to satisfy the connectivity requirement. Node $a$ indicates the current node. The graph $G$ is assumed to be a level-$i$ routing table of $a$. 
+Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. The procedure  connect$(x)$ indicates that $x$ will become a level-$(i+1)$ neighbor of $a$. Function bit$(x, l)$ returns the $(i + l)$-th bit of node $x$'s address, assuming the first bit is numbered~0.
 
 \begin{defn}
     Let \emph{neighborhood} of node $x$ be the set of all neighbors of $x$ of the opposite color.
@@ -147,8 +150,8 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
                 \State ConnectInside(${\rm NH}(x), 0$)
 
                 \For {$ y \in \cN(x) \setminus {\rm NH}(x) $}
-                    \State $Used \gets \{false\}$
-                    \State $Used[x] \gets true$
+                    \State ${\rm Used} \gets \{ {\rm false} \}$
+                    \State ${\rm Used}[x] \gets {\rm true}$
                     \State ConnectNeighborhoods($x, y$)
                 \EndFor
             \EndFor
@@ -162,8 +165,9 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
     \begin{algorithmic}[1]
         \algrestore{connect}
 
-        \Function{NH}{$node$}   \Comment{returns neighborhood of $node$}
-            \State \textbf{return} $ \{x \in \cN(node): bit(x, 0) \ne bit(node, 0)\} $
+        \Function{NH}{$a$}   \Comment{returns neighborhood of node $a$}
+            \State \textbf{return} $ \{x \in \cN(a): {\rm bit}(x, 0) 
+            		\ne {\rm bit}(a, 0)\} $
         \EndFunction
 
         \algstore{connect}
@@ -174,28 +178,28 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
     \begin{algorithmic}[1]
         \algrestore{connect}
 
-        \Procedure{ConnectInside}{$nodes, l$}
-            \State $white \gets \{x \in nodes: bit(x, l) = 0\}$
-            \State $black \gets \{x \in nodes: bit(x, l) = 1\}$
+        \Procedure{ConnectInside}{${\rm nodes}, l$}
+            \State ${\rm white} \gets \{x \in {\rm nodes}: {\rm bit}(x, l) = 0\}$
+            \State ${\rm black} \gets \{x \in {\rm nodes}: {\rm bit}(x, l) = 1\}$
             
-            \If {$ white = \emptyset$ \textbf{or} $black = \emptyset$}
+            \If {${\rm white} = \emptyset$ \textbf{or} ${\rm black} = \emptyset$}
                 \State \textbf{return}
             \EndIf
 
-            \State $w,b \gets \argmin_{x \in white, y \in black}{\rm XOR}(x, y)$
+            \State $w,b \gets \argmin_{x \in {\rm white}, y \in {\rm black}}{\rm XOR}(x, y)$
 
-            \If {$bit(a, l) = 0$}
+            \If {${\rm bit}(a, l) = 0$}
                 \If {$w = a$}
                     \State connect($b$)
                 \EndIf
                 
-                \State ConnectInside($white$, $l + 1$)
+                \State ConnectInside(${\rm white}$, $l + 1$)
             \Else
                 \If {$b = a$}
                     \State connect($w$)
                 \EndIf
 
-                \State ConnectInside($black$, $l + 1$)
+                \State ConnectInside(${\rm black}$, $l + 1$)
             \EndIf
         \EndProcedure
         
@@ -207,22 +211,22 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
     \begin{algorithmic}[1]
         \algrestore{connect}
         
-        \Procedure{ConnectNeighborhoods}{$from, to$}
-            \If {$Used[to]$} 
+        \Procedure{ConnectNeighborhoods}{$a, b$}
+            \If {${\rm Used}[b]$} 
                 \State \textbf{return}      %\Comment {we were here before}
             \EndIf
                 
-            \State $Used[to] \gets true$
+            \State ${\rm Used}[b] \gets {\rm true}$
 
-            \If {$ {\rm NH(to)} \ne \emptyset $}
-                \State $f, t \gets \argmin_{x \in {\rm NH}(from), y \in {\rm NH}(to)}{\rm XOR}(x, y)$
+            \If {$ {\rm NH(b)} \ne \emptyset $}
+                \State $f, t \gets \argmin_{x \in {\rm NH}(a), y \in {\rm NH}(b)}{\rm XOR}(x, y)$
 
                 \If {$f = a$}
                     \State connect($t$)
                 \EndIf
             \Else
-                \For {$next \in \cN(to) \setminus {\rm NH}(to)$}
-                    \State ConnectNeighborhoods($from, next$)
+                \For {${\rm next} \in \cN(b) \setminus {\rm NH}(b)$}
+                    \State ConnectNeighborhoods($a, {\rm next}$)
                 \EndFor
             \EndIf
 
@@ -230,13 +234,16 @@ To ensure connectivity between any two nodes in the network, it is sufficient to
     \end{algorithmic}
 \end{algorithm}
 
-The first thing Algorithm~\ref{alg:connect} does is connecting to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second, for every neighbor $b$ of different color it connects to some nodes in the neighborhood of $b$, such that a connected tree of nodes in the neighborhood of $b$ is formed. Finally, the algorithm recursively connects neighborhood of $b$ to other local neighborhoods.
+The first thing Algorithm~\ref{alg:connect} does is to connect to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second,  every neighbor $b$ of different color connects to some nodes in the neighborhood of $b$, such that a connected tree of nodes in the neighborhood of $b$ is formed. Finally, the algorithm recursively connects the neighborhood of $b$ to other local neighborhoods.
 
-Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show level-$i$ links, dashed edges indicate level-$(i+1)$ connections). First, note how black neighbors of white nodes are organized into trees. Additionally, some black nodes are chosen to connect to black nodes of other close neighborhoods. Node 4 calls ConnectNeighborhoods$(0, 5)$ and stops the recursion. On the other hand, node 2 does not find any black neighbors of node 11 and calls ConnectNeighborhoods$(0, 12)$ from ConnectNeighborhoods$(0, 11)$.
+Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show 
+level-$i$ links, dashed edges indicate level-$(i+1)$ connections). First, note how black neighbors of white nodes are organized into trees. Additionally, some black nodes are chosen to connect to black nodes of other close neighborhoods. Node~4 calls ConnectNeighborhoods$(0, 5)$ and stops the recursion. On the other hand, node~2 does not find any black neighbors of node 11 and 
+calls ConnectNeighborhoods$(0, 12)$ from ConnectNeighborhoods$(0, 11)$.
 
 \input{fig-bmlrp-connect.tex}
 
-So far we have only discussed which nodes are necessary to connect to. A real implementation will however try to maintain a constant number of closest neighbors on each level. This assumption will be necessary for analysis in sections~\ref{sec:analysis:stretch} and \ref{sec:analysis:overhead}.
+So far we have only discussed which nodes are necessary to connect to. A real implementation will, however, try to maintain a constant number of closest neighbors on each level. This assumption will be necessary for 
+the analysis in Sections~\ref{sec:analysis:stretch} and \ref{sec:analysis:overhead}.
 
 
 %\section{Additional Improvements}
@@ -260,10 +267,10 @@ Theorems~\ref{thm:connectivity-levels} and \ref{thm:connectivity-colors} establi
 two important connectivity properties maintained by the proposed protocol.
 
 \begin{thm}
-    Let a level-$i$ network be a connected graph. Then, level-$(i+1)$ network is also a connected graph.
+    Let a level-$i$ network be a connected graph. Then, the level-$(i+1)$ network is also a connected graph.
 
     \begin{proof}
-        Assume, level-$(i+1)$ graph is not connected (1). Now, let $c_k$ and $a$ be vertices from two graph components in level-$(i+1)$ graph, such that the distance from $c_k$ to $a$ in level $i$ is minimized (2). Also, without loss of generality assume $c_k$ and $a$ are black in level~$i$. By the assumption (2), vertices $c_1,c_2,...,c_{k-1}$ from the shortest path chain $a$--$c_1$--$c_2$--...--$c_k$ must be white.
+        Assume, the level-$(i+1)$ graph is not connected (1). Now, let $c_k$ and $a$ be nodes from two graph components in level-$(i+1)$ graph, such that the distance from $c_k$ to $a$ in level $i$ is minimized (2). Also, without loss of generality assume $c_k$ and $a$ are black in level~$i$. By the assumption (2), nodes $c_1,c_2,...,c_{k-1}$ from the shortest path  $a$--$c_1$--$c_2$--...--$c_k$ must be white.
 
         Assume, node $c_k$ does not know about $a$. Then, by Algorithm~\ref{alg:routes} some node $c_j$ does not forward the information about $a$ to $c_{j+1}$ because it knows such black node $b$ that the distance from $b$ to $c_t$ (for some $1 \le t \le j - 1$) is shorter than the distance from $a$ to $c_t$ and the distance from $c_t$ to $c_{j+1}$. If $c_t$ is not connected to either $a$ or $c_k$ in level $(i+1)$, then this must contradict the minimality defined in (2). Otherwise, if $c_t$ is connected to both $a$ and $c_k$ in level $(i+1)$, $a$ and $c_k$ are connected in level $(i+1)$ and this also contradicts (2). Hence, $c_k$ must know a path to $a$. Similarly, $a$ must know a path to $c_k$.
 
@@ -291,39 +298,34 @@ Given Theorems~\ref{thm:connectivity-levels}~and~\ref{thm:connectivity-colors}, 
 
 We will now roughly estimate the path-stretch of the proposed protocol. Each data packet is routed on level-0, level-1, ..., level-$k$ networks with respect to the destination until it finally reaches the destination. We assume equal properties across all levels 0, ..., $k - 1$, including each node maintaining a constant number $M$ of closest neighbors on each level.
 
-The path stretch when routing data over level-$(i+1)$ network has to be some constant multiple $q$ ($q \ge 1$) of the stretch when routing data over the underlying level-$i$ network. Because $C_0\sqrt{N}$ is the average distance in a wireless network of $N$ identical uniformly placed nodes~\cite{Kleinrock} and level-$i$ nodes only route data to close level-$(i+1)$ nodes, the distance in physical network between a routing level-$i$ node and a routing level-$(i+1)$ node must be proportional to $\sqrt{2^i}$. We also know that the maximum level $k$ over which data is routed is less than $log_2N$. We now find the average number of traversed hops:
+The path stretch when routing data over a level-$(i+1)$ network has to be some constant multiple $q$ ($q \ge 1$) of the stretch when routing data over the underlying level-$i$ network. Because $C_0\sqrt{N}$ is the average distance in a wireless network of $N$ identical uniformly placed nodes~\cite{Kleinrock} and level-$i$ nodes only route data to close level-$(i+1)$ nodes, the distance in physical network between a routing level-$i$ node and a routing level-$(i+1)$ node must be proportional to $\sqrt{2^i}$. We also know that the maximum level $k$ over which data is routed is less than $\log_2N$. We now find the average number of traversed hops:
 \begin{equation*}
 \begin{split}
-    {\rm hops} & = C (1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{k-1}} q^{k-1} + \sqrt{N} q^k) \\
-               & < C \Big( (\sqrt{2} q)^{k-1} \sum_{i = 0}^{\infty} (\sqrt{2}q)^{-i} + \sqrt{N} q^k \Big) \\
-               & = C \Big( (\sqrt{2} q)^{k-1} \frac{1}{1 - (\sqrt{2}q)^{-1}} + \sqrt{N} q^k \Big)  \\
-               & = C \Big( (\sqrt{2} q)^{k-1} \frac{\sqrt{2} q}{\sqrt{2}q - 1} + \sqrt{N} q^k \Big)  \\
-               & < C \Big( \sqrt{N} q^k \frac{\sqrt{2} q}{\sqrt{2}q - 1} + \sqrt{N} q^k \Big)  \\
-               & = C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) \sqrt{N} q^k  \\
-               & < C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) \sqrt{N} q^{log_2 N}  \\
-               & = C \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) N^{\frac{1}{2} + log_2 q}
+    {\rm hops} & = C \left (1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{k-1}} q^{k-1} + \sqrt{N} q^k \right ) \\
+              & < C \left( (\sqrt{2} q)^{k-1} \sum_{i = 0}^{\infty} (\sqrt{2}q)^{-i} + \sqrt{N} q^k \right ) \\
+  %             & = C \left ( (\sqrt{2} q)^{k-1} \frac{1}{1 - (\sqrt{2}q)^{-1}} + \sqrt{N} q^k \right )  \\
+  %             & = C \left ( (\sqrt{2} q)^{k-1} \frac{\sqrt{2} q}{\sqrt{2}q - 1} + \sqrt{N} q^k \right )  \\
+               & < C \left ( \sqrt{N} q^k \frac{\sqrt{2} q}{\sqrt{2}q - 1} + \sqrt{N} q^k \right )  \\
+  %             & = C \left ( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \right ) \sqrt{N} q^k  \\
+               & < C \left ( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \right ) \sqrt{N} q^{\log_2 N}  \\
+               & = C \left ( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \right ) N^{\frac{1}{2} + \log_2 q}
 \end{split}
 \end{equation*}
-
-Thus, the upper bound for the average number of hops is:
-
+Thus, an upper bound for the average number of hops is given by
 \begin{equation*}
-    O({\rm hops}) = \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1}  \Big) N^{\frac{1}{2} + log_2 q}
+    O({\rm hops}) = O \left ( N^{\frac{1}{2} + \log_2 q} \right ) .
 \end{equation*}
-
 Dividing by $\sqrt{N}$ we find the upper bound for the average path stretch:
-
 \begin{equation*}
-    O({\rm stretch}) = \Big( \frac{2\sqrt{2}q - 1}{\sqrt{2}q - 1} \Big) N^{log_2 q}
+    O({\rm stretch}) = O \left ( N^{\log_2 q} \right ) .
 \end{equation*}
-
-For example, when each new level increases the path-stretch by 10\%, we have $O({\rm stretch}) \approx \sqrt[7]{N}$ and $O({\rm hops}) \approx N^{0.64}$, which can be considered scalable in many situations. By changing the routing table sizes, $q$ can be adjusted as desired.
+For example, when each new level increases the path-stretch by 10\%, we have $O({\rm stretch}) \approx O \left ( \sqrt[7]{N} \right )$ and $O({\rm hops}) \approx O \left ( N^{0.64} \right )$, which can be considered scalable in many situations. By changing the routing table sizes, $q$ can be adjusted as desired.
 
 
 \subsection{Protocol overhead}
 \label{sec:analysis:overhead}
 
-We will now attempt to estimate size of the protocol overhead under Random Waypoint motion of $N$ uniformly distributed nodes over area $A$ with a constant node density.
+We will now  estimate the protocol overhead under random waypoint motion of $N$ uniformly distributed nodes over area $A$ with a constant node density.
 
 Given the smallest level $k$ on which a node $a$ sees all nodes of the level-$k$ network with respect to $a$, the node $a$ must exchange protocol messages with all of its $M$ neighbors on each level $0 \le i \le k$. The average physical distance to the $M$ physical neighbors of $a$ is proportional to $\sqrt{A / N}$. Similarly, the average distance (both geographical and in hops) to $M$ level-$i$ neighbors is proportional to $\sqrt{A / (N / 2^i)} = \sqrt{2^i (A / N)}$. The node density $(A / N)$ is constant; therefore, the average distance to $M$ level-$i$ neighbors is proportional to $\sqrt{2^i}$. Node $a$ connects to a level-$i$ node $b$ and disconnects from the $M$'s level-$i$ neighbor $c$ if the distance to $b$ becomes less than the distance to $c$. Hence, it is reasonable to expect the frequency of connects/disconnects and the frequency of protocol messages exchanged with level-$i$ nodes to be proportional $1 / \sqrt{2^i}$:
 %
@@ -331,26 +333,27 @@ Given the smallest level $k$ on which a node $a$ sees all nodes of the level-$k$
     F(i) \sim \sqrt{\frac{1}{2^i}}
 \end{equation*}
 
-Sending information to a level-$i$ neighbor requires sending the information over level-$(i - 1)$ network. Section~\ref{sec:analysis:overhead} shows that the number of physical hops traversed is bounded by 
-%
+Sending information to a level-$i$ neighbor requires sending the information over
+a level-$(i - 1)$ network. Section~\ref{sec:analysis:overhead} shows that the number of physical hops traversed is bounded by 
 \begin{equation*}
     1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{i-1}} q^{i-1} < \frac{ (\sqrt{2}q)^i }{\sqrt{2}q - 1}
 \end{equation*}
 %
-The amount of traffic a single node creates in the network to communicate with its level-$i$ neighbors:
+The amount of traffic a single node creates in the network to communicate
+with its level-$i$ neighbors is upper bounded by
 %
 \begin{equation*}
-    O(T(i)) = \frac{ (\sqrt{2}q)^i }{\sqrt{2}q - 1}
+    T(i) < C_1 \frac{ (\sqrt{2}q)^i }{\sqrt{2}q - 1} .
 \end{equation*}
-
-Thus, the total protocol overhead a single node creates in the network is given by
+Thus, the total protocol overhead a single node creates in the network is 
+upper bounded by
 %
-\begin{equation*}
-\begin{split}
-    O({\rm overhead}) & = O\Big( \sum_{i = 0}^{k} F(i)T(i) \Big) = \sum_{i = 0}^{k} \frac{q^i}{\sqrt{2}q - 1}   \\
-    O({\rm overhead}) & = \frac{q}{ (\sqrt{2}q - 1)(q - 1) } N^{log_2q}
-\end{split}
-\end{equation*}
+\begin{align*}
+    {\rm overhead} & < C_2 \sum_{i = 0}^{k} F(i)T(i) 
+    	 = C \sum_{i = 0}^{k} \frac{q^i}{\sqrt{2}q - 1}   \\
+     & < \frac{C q}{ (\sqrt{2}q - 1)(q - 1) } N^{\log_2q}
+\end{align*}
+Therefore, $O({\rm overhead}) = O(N^{\log_2 q} )$.
 %
 %\begin{equation*}
 %\begin{split}
@@ -364,14 +367,16 @@ Thus, the total protocol overhead a single node creates in the network is given 
 \subsection{Average node degree}
 \label{sec:analysis:nodedegree}
 
-Despite many advantages, our protocol does not guarantee that the routing table sizes for higher level networks remain low. To analyze this aspect, we performed an implicit simulation of the minimal connecting (Algorithm~\ref{alg:connect}) to track the average vertex degree of nodes across each level.
+Despite several advantages, BMLRP does not guarantee that the routing table sizes for higher level networks remain low. To analyze this aspect, we performed an implicit simulation of the minimal connecting 
+(Algorithm~\ref{alg:connect}) to track the average degree of nodes across each level.
 
-In the figure below, the black line shows the simulation result on a static wireless network of $2^{14}$ identical nodes uniformly distributed in a square area. As you can see, the average number of neighbors first stabilizes around value 6 and then continues decreasing as the network level $i$ grows. Additionally, we randomly connected 1\%, 5\% and 10\% nodes in the network independently of their coordinates. The blue, orange and red lines show that when random long-range edges are added, the higher level networks become close world networks and the number of mandarory connections fails to decrease. The impact, however, is small; the red line demonstrates that even when 10\% of the nodes are randomly wired, the average number of level-$i$ neighbors in the network does not exceed 25 for $2^{14}$ nodes.
+In Fig.~\ref{fig:degrees}, the black line shows the simulation result on a static wireless network of $2^{14}$ identical nodes uniformly distributed in a square area. Note that the average number of neighbors first stabilizes around 
+the value~6 and then continues decreasing as the network level $i$ grows. Additionally, we randomly connected 1\%, 5\% and 10\% nodes in the network independently of their coordinates. The blue, orange and red lines show that when random long-range edges are added, the higher level networks become close world networks and the number of mandatory connections fails to decrease. The impact, however, is small; the red line demonstrates that even when 10\% of the nodes are randomly wired, the average number of level-$i$ neighbors in the network does not exceed 25 for $2^{14}$ nodes.
 
 \begin{figure}[H]
-    \includegraphics[width=0.95\linewidth]{degrees}
+   \includegraphics[width=0.95\linewidth]{degrees}
 
-    %\caption{ds}
+   \caption{Average node degree vs.\ network level~$i$.}
     \label{fig:degrees}
 \end{figure}
 
@@ -379,9 +384,9 @@ In the figure below, the black line shows the simulation result on a static wire
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have developed a new proactive routing protocol for MANETs, which has several important features in comparison to previous protocols: guaranteed delivery, scalability, absence of single points of failure, low path-stretch, support of multi-path connectivity, {\color{orange}mobility}. The proposed protocol has a similar setup to the \urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Unlike the \urbanxor\ protocol, however, the proposed protocol guarantees that if two nodes are indirectly connected they are able to communicate. Furthermore, the proposed protocol generates {\color{orange}much (no simulation yet)} lower overhead traffic than \urbanxor\ in mobile scenarios.  
+We have developed BMRL, a new proactive DHT-based routing protocol for MANETs, which has several important features in comparison to previous protocols: scalability, guaranteed connectivity assuming network convergence,  absence of single points of failure, low path-stretch, and mobility. The proposed BMLR protocol has a similar setup to the \urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Unlike the \urbanxor\ protocol, however, BMLR guarantees that if two nodes are indirectly connected they are able to communicate. Furthermore, the proposed protocol generates much lower overhead traffic than \urbanxor\ in mobile scenarios.  
 
-Connectivity properties of the proposed protocol were proved, and growth rates of the path stretch and number of hops for routes were given. The average node degree as a function of the level~$i$ network was studied numerically. In ongoing work, we are studying other performance aspects of the protocol through large-scale simulations {\color{orange}using ns3}.
+Connectivity properties of the proposed protocol were proved, and growth rates of the path stretch and number of hops for routes were given. The average node degree as a function of the level~$i$ network was studied numerically. In ongoing work, we are studying other performance aspects of the protocol, such as packet delivery ratio, through large-scale~ns3 simulations.
 
 
 % Generate the bibliography.
