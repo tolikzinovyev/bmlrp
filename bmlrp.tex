@@ -67,7 +67,7 @@ A number of interesting solutions have been proposed for minimizing the path-str
 The Binary Multi-level Routing Protocol (BMLRP) proposed in this paper is closest in approach to the recent KDSR~\cite{kdsr} and \urbanxor~\cite{Pasquini} protocols, which employ a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Each node maintains $n$ buckets for storing information about other nodes with address prefixes equal to the node's address prefix. When routing information to any node, the next hop with the longest matching prefix is chosen from among the $n$~buckets. Path efficiency 
 in \urbanxor~is achieved by employing the concept of local visibility, which prioritizes physically close nodes in the routing table. By maintaining this network structure, mobility support turns out to be better than in other protocols.
 
-The \urbanxor\ protocol, however, has several drawbacks. The most prominent one is the absence of a guarantee that if two nodes are indirectly connected they are able to communicate \cite{Pasquini}. Another objection is the method of acquiring paths to other nodes, which tends to generate much overhead traffic in mobile scenarios.  The protocol proposed in this paper aims to solve both problems altogether. In addition,  BMLRP decreases the path stretch even further by incorporating a novel algorithm that selects near-optimal routes without maintaining them.
+The \urbanxor\ protocol, however, has several drawbacks. The most prominent one is the absence of a guarantee that if two nodes are indirectly connected they are able to communicate \cite{Pasquini}. Another objection is the method of acquiring paths to other nodes, which tends to generate much overhead traffic in mobile scenarios.  The protocol proposed in this paper aims to solve both problems altogether.
 
 The rest of the paper is organized as follows. Section~\ref{sec:urbanxor} describes the \urbanxor\ routing protocol in more detail. Section~\ref{sec:bmlrp} introduces BMRLP, which overcomes the major drawbacks of \urbanxor. 
 Section~\ref{sec:analysis} discusses routing properties of the new approach. 
@@ -122,8 +122,7 @@ We will now examine how nodes discover other close level-$i$ nodes.
     \label{alg:routes}
 \end{algorithm}
 
-In Figure~\ref{fig:bmlrp-routes}, node~0 connects to nodes~1 and 4. By 
-Algorithm~\ref{alg:routes}, node 0's level-1 graph $G_0$ is depicted in Figure~\ref{fig:bmlrp-routes-nb1}. Paths that will be included in $G_{out0}$ are 0--1--5--4, 0--1--5--6, 0--1--2--6. Path 0--1--2--3--7 will not be included because the distance from 6 to 2 is shorter than both paths 0--1--2 and 2--3--7. Figure~\ref{fig:bmlrp-routes-nb2} shows a similar graph of node 4. Here, the only 2 paths satisfying the requirement are 0--4--5 and 0--4--8. Node~0 combines the information received from the nodes 1,4 and forms a routing table $G$ depicted in Figure~\ref{fig:bmlrp-routes-visible}.
+In Figure~\ref{fig:bmlrp-routes}, node~0 connects to nodes~1 and 4. By Algorithm~\ref{alg:routes}, node 1's graph $G_0$ is depicted in Figure~\ref{fig:bmlrp-routes-nb1}. Paths that will be included in $G_{out0}$ are 0--1--5--4, 0--1--5--6, 0--1--2--6. Path 0--1--2--3--7 will not be included because the distance from 6 to 2 is shorter than both paths 0--1--2 and 2--3--7. Figure~\ref{fig:bmlrp-routes-nb2} shows a similar graph of node 4. Here, the only 2 paths satisfying the requirement are 0--4--5 and 0--4--8. Node~0 combines the information received from the nodes 1,4 and forms a routing table $G$ depicted in Figure~\ref{fig:bmlrp-routes-visible}.
 
 All updates of links communicated between neighbors are sent in a proper order. The strategy is to proactively maintain only up-to-date routes. This can be explained as follows. Suppose, node $a$ knows about link $b$--$c_1$ that breaks. By Algorithm~\ref{alg:routes}, for every path $b$--$c_1$--$c_2$--...--$c_k$--$a$ stored in memory of $a$, $c_k$--$a$ and every connection $c_j$--$c_{j+1}$ must be alive. Therefore, if nodes $b$ and $c_1$ disconnect, the information will be propagated through every such path and record of the link will be erased.
 
@@ -165,9 +164,9 @@ Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. The procedure  conne
     \begin{algorithmic}[1]
         \algrestore{connect}
 
-        \Function{NH}{$a$}   \Comment{returns neighborhood of node $a$}
-            \State \textbf{return} $ \{x \in \cN(a): {\rm bit}(x, 0) 
-            		\ne {\rm bit}(a, 0)\} $
+        \Function{NH}{$d$}   \Comment{returns neighborhood of node $d$}
+            \State \textbf{return} $ \{x \in \cN(d): {\rm bit}(x, 0) 
+            		\ne {\rm bit}(d, 0)\} $
         \EndFunction
 
         \algstore{connect}
@@ -211,22 +210,22 @@ Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. The procedure  conne
     \begin{algorithmic}[1]
         \algrestore{connect}
         
-        \Procedure{ConnectNeighborhoods}{$a, b$}
-            \If {${\rm Used}[b]$} 
+        \Procedure{ConnectNeighborhoods}{$from, to$}
+            \If {${\rm Used}[to]$} 
                 \State \textbf{return}      %\Comment {we were here before}
             \EndIf
                 
-            \State ${\rm Used}[b] \gets {\rm true}$
+            \State ${\rm Used}[to] \gets {\rm true}$
 
-            \If {$ {\rm NH(b)} \ne \emptyset $}
-                \State $f, t \gets \argmin_{x \in {\rm NH}(a), y \in {\rm NH}(b)}{\rm XOR}(x, y)$
+            \If {$ {\rm NH(to)} \ne \emptyset $}
+                \State $f, t \gets \argmin_{x \in {\rm NH}(from), y \in {\rm NH}(to)}{\rm XOR}(x, y)$
 
                 \If {$f = a$}
                     \State connect($t$)
                 \EndIf
             \Else
-                \For {${\rm next} \in \cN(b) \setminus {\rm NH}(b)$}
-                    \State ConnectNeighborhoods($a, {\rm next}$)
+                \For {${\rm next} \in \cN(to) \setminus {\rm NH}(to)$}
+                    \State ConnectNeighborhoods($from, {\rm next}$)
                 \EndFor
             \EndIf
 
@@ -234,7 +233,7 @@ Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. The procedure  conne
     \end{algorithmic}
 \end{algorithm}
 
-The first thing Algorithm~\ref{alg:connect} does is to connect to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second,  every neighbor $b$ of different color connects to some nodes in the neighborhood of $b$, such that a connected tree of nodes in the neighborhood of $b$ is formed. Finally, the algorithm recursively connects the neighborhood of $b$ to other local neighborhoods.
+The first thing Algorithm~\ref{alg:connect} does is to connect to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second, for every neighbor $b$ of different color the node connects to some nodes in the neighborhood of $b$, such that a connected tree of nodes in the neighborhood of $b$ is formed. Finally, the algorithm recursively connects the neighborhood of $b$ to other local neighborhoods.
 
 Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show 
 level-$i$ links, dashed edges indicate level-$(i+1)$ connections). First, note how black neighbors of white nodes are organized into trees. Additionally, some black nodes are chosen to connect to black nodes of other close neighborhoods. Node~4 calls ConnectNeighborhoods$(0, 5)$ and stops the recursion. On the other hand, node~2 does not find any black neighbors of node 11 and 
@@ -384,7 +383,7 @@ the value~6 and then continues decreasing as the network level $i$ grows. Additi
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have developed BMRL, a new proactive DHT-based routing protocol for MANETs, which has several important features in comparison to previous protocols: scalability, guaranteed connectivity assuming network convergence,  absence of single points of failure, low path-stretch, and mobility. The proposed BMLR protocol has a similar setup to the \urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Unlike the \urbanxor\ protocol, however, BMLR guarantees that if two nodes are indirectly connected they are able to communicate. Furthermore, the proposed protocol generates much lower overhead traffic than \urbanxor\ in mobile scenarios.  
+We have developed BMLRP, a new proactive DHT-based routing protocol for MANETs, which has several important features in comparison to previous protocols: scalability, guaranteed connectivity assuming network convergence,  absence of single points of failure, low path-stretch, and mobility. The proposed BMLRP protocol has a similar setup to the \urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Unlike the \urbanxor\ protocol, however, BMLRP guarantees that if two nodes are indirectly connected they are able to communicate. Furthermore, the proposed protocol generates much lower overhead traffic than \urbanxor\ in mobile scenarios.  
 
 Connectivity properties of the proposed protocol were proved, and growth rates of the path stretch and number of hops for routes were given. The average node degree as a function of the level~$i$ network was studied numerically. In ongoing work, we are studying other performance aspects of the protocol, such as packet delivery ratio, through large-scale~ns3 simulations.
 
