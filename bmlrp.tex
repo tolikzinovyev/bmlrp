@@ -55,8 +55,8 @@ Routing in mobile ad hoc networks (MANETs) presents a big challenge, especially 
 \section{Introduction}
 \label{sec:introduction}
 
-Over the past twenty years, a number of routing protocols for mobile ad hoc networks (MANETs) have been developed.
-In reactive protocols such as AODV~\cite{aodv} and DSR~\cite{dsr}, routes are set up  on demand via route request packets.  Proactive protocols, such as OLSR~\cite{olsr} maintain routes to destinations by periodically disseminating routing information throughout the network. Reactive protocols generally perform better in mobile scenarios, but can have high latencies and introduce high traffic overhead during route setup.  Hybrid protocols such as ZRP~\cite{zrp} attempt to combine the features of the reactive and proactive approaches.  The aforementioned protocols do not scale to networks with large numbers of nodes, e.g., in the thousands or several thousands.  Hierarchical protocols, such as FSR~\cite{fsr} and CBRP~\cite{cbrp} are designed to have improved scalability, but can be challenging to implement in practice.  
+Over the past thirty years, a number of routing protocols for mobile ad hoc networks (MANETs) have been developed.
+In reactive protocols such as AODV~\cite{aodv} and DSR~\cite{dsr}, routes are set up  on demand via route request packets.  Proactive protocols, such as OLSR~\cite{olsr} maintain routes to destinations by periodically disseminating routing information throughout the network. Reactive protocols generally perform better in mobile scenarios, but can have high latencies and introduce high traffic overhead during route setup.  Hybrid protocols such as ZRP~\cite{zrp} attempt to combine the features of the reactive and proactive approaches.  The aforementioned protocols do not scale to networks with large numbers of nodes, e.g., in the thousands or several thousands. 
   
 Recently, MANET routing protocols based on routing schemes for distributed hash tables (DHTs) have been proposed.  DHT-based MANET routing protocols  are interesting for several reasons. First is their scalability properties achieved by creating a special network structure and reducing the routing table size. Second is their simplicity relative to clustering-based approaches. In clustering-based protocols, nodes are divided into groups, which are subsequently split into smaller groups~\cite{Hong}. Although, such an approach can be scalable to larger networks, it can be difficult to implement in practice. In addition, clustering-based protocols often use critical nodes for controlling clusters~\cite{Hong} and dynamic addresses \cite{Hong,dart,ntk}, which may compromise the stability of the network.
 
@@ -67,7 +67,7 @@ A number of interesting solutions have been proposed for minimizing the path-str
 The Binary Multi-level Routing Protocol (BMLRP) proposed in this paper is closest in approach to the recent KDSR~\cite{kdsr} and \urbanxor~\cite{Pasquini} protocols, which employ a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Each node maintains $n$ buckets for storing information about other nodes with address prefixes equal to the node's address prefix. When routing information to any node, the next hop with the longest matching prefix is chosen from among the $n$~buckets. Path efficiency 
 in \urbanxor~is achieved by employing the concept of local visibility, which prioritizes physically close nodes in the routing table. By maintaining this network structure, mobility support turns out to be better than in other protocols.
 
-The \urbanxor\ protocol, however, has several drawbacks. The most prominent one is the absence of a guarantee that if two nodes are indirectly connected they are able to communicate \cite{Pasquini}. Another objection is the method of acquiring paths to other nodes, which tends to generate much overhead traffic in mobile scenarios.  The protocol proposed in this paper aims to solve both problems altogether.
+The \urbanxor\ protocol, however, has several drawbacks. The most prominent one is the absence of a guarantee that if two nodes are indirectly connected they are able to communicate \cite{Pasquini}. Another objection is the method of acquiring paths to other nodes, which tends to generate much overhead traffic in mobile scenarios. The proposed BMLRP protocol is a proactive routing protocol that aims to solve both problems altogether.
 
 The rest of the paper is organized as follows. Section~\ref{sec:urbanxor} describes the \urbanxor\ routing protocol in more detail. Section~\ref{sec:bmlrp} introduces BMRLP, which overcomes the major drawbacks of \urbanxor. 
 Section~\ref{sec:analysis} discusses routing properties of the new approach. 
@@ -210,22 +210,22 @@ Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. The procedure  conne
     \begin{algorithmic}[1]
         \algrestore{connect}
         
-        \Procedure{ConnectNeighborhoods}{$from, to$}
-            \If {${\rm Used}[to]$} 
+        \Procedure{ConnectNeighborhoods}{from, to}
+            \If {${\rm Used}[{\rm to}]$}
                 \State \textbf{return}      %\Comment {we were here before}
             \EndIf
                 
-            \State ${\rm Used}[to] \gets {\rm true}$
+            \State ${\rm Used}[{\rm to}] \gets {\rm true}$
 
-            \If {$ {\rm NH(to)} \ne \emptyset $}
-                \State $f, t \gets \argmin_{x \in {\rm NH}(from), y \in {\rm NH}(to)}{\rm XOR}(x, y)$
+            \If {$ {\rm NH({\rm to})} \ne \emptyset $}
+                \State $f, t \gets \argmin_{x \in {\rm NH}({\rm from}), y \in {\rm NH}({\rm to})}{\rm XOR}(x, y)$
 
                 \If {$f = a$}
                     \State connect($t$)
                 \EndIf
             \Else
-                \For {${\rm next} \in \cN(to) \setminus {\rm NH}(to)$}
-                    \State ConnectNeighborhoods($from, {\rm next}$)
+                \For {${\rm next} \in \cN({\rm to}) \setminus {\rm NH}({\rm to})$}
+                    \State ConnectNeighborhoods(from, next)
                 \EndFor
             \EndIf
 
@@ -258,6 +258,10 @@ the analysis in Sections~\ref{sec:analysis:stretch} and \ref{sec:analysis:overhe
 
 \section{Analysis}
 \label{sec:analysis}
+
+\subsection{Absence of Stale Routes}
+\label{sec:analysis:staleroutes}
+
 
 \subsection{Connectivity}
 \label{sec:analysis:connectivity}
@@ -324,43 +328,15 @@ For example, when each new level increases the path-stretch by 10\%, we have $O(
 \subsection{Protocol overhead}
 \label{sec:analysis:overhead}
 
-We will now  estimate the protocol overhead under random waypoint motion of $N$ uniformly distributed nodes over area $A$ with a constant node density.
+Assuming a network of $N$ uniformly distributed nodes over a constant area, simple constant-rate updates on each level give us
+%
+\begin{equation*}
+    O({\rm overhead}) = O \left ( N^{\frac{1}{2} + \log_2 q} \right )
+\end{equation*}
+%
+per node as shown in Section~\ref{sec:analysis:stretch}.
 
-Given the smallest level $k$ on which a node $a$ sees all nodes of the level-$k$ network with respect to $a$, the node $a$ must exchange protocol messages with all of its $M$ neighbors on each level $0 \le i \le k$. The average physical distance to the $M$ physical neighbors of $a$ is proportional to $\sqrt{A / N}$. Similarly, the average distance (both geographical and in hops) to $M$ level-$i$ neighbors is proportional to $\sqrt{A / (N / 2^i)} = \sqrt{2^i (A / N)}$. The node density $(A / N)$ is constant; therefore, the average distance to $M$ level-$i$ neighbors is proportional to $\sqrt{2^i}$. Node $a$ connects to a level-$i$ node $b$ and disconnects from the $M$'s level-$i$ neighbor $c$ if the distance to $b$ becomes less than the distance to $c$. Hence, it is reasonable to expect the frequency of connects/disconnects and the frequency of protocol messages exchanged with level-$i$ nodes to be proportional $1 / \sqrt{2^i}$:
-%
-\begin{equation*}
-    F(i) \sim \sqrt{\frac{1}{2^i}}
-\end{equation*}
-
-Sending information to a level-$i$ neighbor requires sending the information over
-a level-$(i - 1)$ network. Section~\ref{sec:analysis:overhead} shows that the number of physical hops traversed is bounded by 
-\begin{equation*}
-    1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{i-1}} q^{i-1} < \frac{ (\sqrt{2}q)^i }{\sqrt{2}q - 1}
-\end{equation*}
-%
-The amount of traffic a single node creates in the network to communicate
-with its level-$i$ neighbors is upper bounded by
-%
-\begin{equation*}
-    T(i) < C_1 \frac{ (\sqrt{2}q)^i }{\sqrt{2}q - 1} .
-\end{equation*}
-Thus, the total protocol overhead a single node creates in the network is 
-upper bounded by
-%
-\begin{align*}
-    {\rm overhead} & < C_2 \sum_{i = 0}^{k} F(i)T(i) 
-    	 = C \sum_{i = 0}^{k} \frac{q^i}{\sqrt{2}q - 1}   \\
-     & < \frac{C q}{ (\sqrt{2}q - 1)(q - 1) } N^{\log_2q}
-\end{align*}
-Therefore, $O({\rm overhead}) = O(N^{\log_2 q} )$.
-%
-%\begin{equation*}
-%\begin{split}
-%      & \sum_{i = 0}^{k} \frac{q^i}{\sqrt{2}q - 1} < \frac{q^k}{\sqrt{2}q - 1} \frac{q}{q - 1} <        \\
-%    < & \frac{q}{ (\sqrt{2}q - 1)(q - 1) } q^{log_2N} = \frac{q}{ (\sqrt{2}q - 1)(q - 1) } N^{log_2q}   \\
-%\end{split}
-%\end{equation*}
-%
+Using a more advanced approach for exchanging control messages, this complexity might be reduced. This investigation is left for further research.
 
 
 \subsection{Average node degree}
@@ -385,7 +361,7 @@ the value~6 and then continues decreasing as the network level $i$ grows. Additi
 
 We have developed BMLRP, a new proactive DHT-based routing protocol for MANETs, which has several important features in comparison to previous protocols: scalability, guaranteed connectivity assuming network convergence,  absence of single points of failure, low path-stretch, and mobility. The proposed BMLRP protocol has a similar setup to the \urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Unlike the \urbanxor\ protocol, however, BMLRP guarantees that if two nodes are indirectly connected they are able to communicate. Furthermore, the proposed protocol generates much lower overhead traffic than \urbanxor\ in mobile scenarios.  
 
-Connectivity properties of the proposed protocol were proved, and growth rates of the path stretch and number of hops for routes were given. The average node degree as a function of the level~$i$ network was studied numerically. In ongoing work, we are studying other performance aspects of the protocol, such as packet delivery ratio, through large-scale~ns3 simulations.
+Connectivity properties of the proposed protocol were proved, and growth rates of the path stretch and number of hops for routes were given. The average node degree as a function of the level~$i$ network was studied numerically. In ongoing work, we are implementing the protocol using ns-3 to evaluate path~stretch, overhead, delivery ratio and other properties through simulation.
 
 
 % Generate the bibliography.
