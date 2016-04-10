@@ -73,8 +73,10 @@
             \Wn (n14) at (\coordscl{2}, \coordscl{3}) {00111};
             \bn[draw=red] (n15) at (\coordscl{3}, \coordscl{3}) {01000};
 
+            \draw[->,ultra thick]
+                (n1) -- (n6);
+
             \draw[ultra thick]
-                (n1) -- (n6)
                 (n1) -- (n7)
                 (n1) -- (n9)
                 (n6) -- (n7)
@@ -91,36 +93,6 @@
         \end{tikzpicture}
 
         \label{fig:bmlrp-routing-l1}
-    }%
-    %
-    \hfil%
-    %
-    \subfloat[Level 2] {
-        \begin{tikzpicture}
-            \Bn[draw=blue] (n1) at (\coordscl{2}, \coordscl{0}) {01100};
-            \Wn (n6) at (\coordscl{2}, \coordscl{1}) {01010};
-            \Wn (n9) at (\coordscl{1}, \coordscl{2}) {01011};
-            \Wn (n11) at (\coordscl{3}, \coordscl{2}) {01001};
-            \wn[draw=red] (n15) at (\coordscl{2.5}, \coordscl{3}) {01000};
-
-            \draw[->,ultra thick]
-                (n1) -- (n6);
-
-            \draw[ultra thick]
-                (n1) -- (n9)
-                (n1) -- (n11)
-                ;
-
-            \draw
-                (n6) -- (n9)
-                (n6) -- (n11)
-                (n9) -- (n11)
-                (n9) -- (n15)
-                (n11) -- (n15)
-                ;
-        \end{tikzpicture}
-
-        \label{fig:bmlrp-routing-l2}
     }%
     %
     \hfil%
