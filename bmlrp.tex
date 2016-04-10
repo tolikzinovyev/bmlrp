@@ -110,74 +110,60 @@ We will now examine which nodes and edges must be propagated by each node in ord
 
 \begin{algorithm}[H]
     \caption{Include necessary routes}
+    \label{alg:routes}
     
     \begin{itemize} 
-
         \item   For each connected neighbor $b$ node $a$ constructs a graph $G_b$ by merging the graphs received from all of its neighbors except $b$ and adding all direct edges to these neighbors, and adding the edge $a$--$b$. Node $a$ then calculates a subset $G_{outb}$ of $G_b$ defined as follows.
 
-        \item   Consider every path $b$--$a$--$c_1$--$c_2$--...--$c_k$--$d$ in $G_b$; call this path $\cP$ (all nodes in $\cP$ are different). Without loss of generality, let $a$ be white. All nodes and edges of $\cP$ will be included in $G_{outb}$ if: 1) the nodes $c_i$ are white, $d$ is black, and 2) for any $c_i$ there is no black node $f$ in $G_b$, such that the distance from $f$ to $c_i$ is smaller than the distance from $c_i$ to $d$ in $\cP$ and the distance from $c_i$ to $b$ in $\cP$.
+        \item   Consider every path $b$--$a$--$c_1$--$c_2$--...--$c_k$--$d$ in $G_b$; call this path $\cP$ (all nodes in $\cP$ are different). Without loss of generality, let $a$ be white. All nodes and edges of $\cP$ will be included in $G_{outb}$ if all:
+        \begin{enumerate}
+            \item   $d$ is black
+            \item   $c_i$ are white ($1 \le i \le k$)
+            \item   for any $c_i$ there is no black node $f$ in $G_b$, such that the distance
+                    from $f$ to $c_i$ is smaller than the distance 
+                    from $c_i$ to $d$ in $\cP$ and the distance from $c_i$ to $b$ in $\cP$.
+        \end{enumerate}
 
         \item   Exclude node $b$ from $G_{outb}$.
     \end{itemize}
-
-    \label{alg:routes}
 \end{algorithm}
 
 In Figure~\ref{fig:bmlrp-routes}, node~0 connects to nodes~1 and 4. By Algorithm~\ref{alg:routes}, node 1's graph $G_0$ is depicted in Figure~\ref{fig:bmlrp-routes-nb1}. Paths that will be included in $G_{out0}$ are 0--1--5--4, 0--1--5--6, 0--1--2--6. Path 0--1--2--3--7 will not be included because the distance from 6 to 2 is shorter than both paths 0--1--2 and 2--3--7. Figure~\ref{fig:bmlrp-routes-nb2} shows a similar graph of node 4. Here, the only 2 paths satisfying the requirement are 0--4--5 and 0--4--8. Node~0 combines the information received from the nodes 1,4 and forms a routing table $G$ depicted in Figure~\ref{fig:bmlrp-routes-visible}.
 
-To ensure connectivity between any two nodes in the network, it is sufficient to make every same-color node in level-$i$ graph $G$ a neighbor on level~$(i+1)$. It can be foreseen, however, that this will lead to big routing tables on higher levels. Therefore, a more restrictive approach is needed. Algorithm~\ref{alg:connect} characterizes which nodes are necessary to connect to in order to satisfy the connectivity requirement. Node $a$ indicates the current node. The graph $G$ is assumed to be a level-$i$ routing table of $a$. 
-Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. The procedure  connect$(x)$ indicates that $x$ will become a level-$(i+1)$ neighbor of $a$. Function bit$(x, l)$ returns the $(i + l)$-th bit of node $x$'s address, assuming the first bit is numbered~0.
+To ensure connectivity between any two nodes in the network, it is sufficient to make every same-color node in level-$i$ graph $G$ a neighbor on level~$(i+1)$. It can be foreseen, however, that this will lead to big routing tables on higher levels. Therefore, a more restrictive approach is needed. Algorithm~\ref{alg:connect} characterizes which nodes are necessary to connect to in order to satisfy the connectivity requirement. Node $a$ indicates the current node. The graph $G$ is assumed to be a level-$i$ routing table of $a$.
+%Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. 
+The procedure  connect$(x)$ indicates that $x$ will become a level-$(i+1)$ neighbor of $a$. Function bit$(x, l)$ returns the $(i + l)$-th bit of node $x$'s address, assuming the first bit is numbered~0. XOR$(c, d)$ denotes bitwise exclusive OR.
+
+Without loss of generality, assume $a$ is black in level-$i$ network.
 
 \input{fig-bmlrp-connect.tex}
 
-\begin{defn}
-    Let \emph{neighborhood} of node $x$ be the set of all neighbors of $x$ of the opposite color.
-    
-    \label{defn:neighborhood}
-\end{defn}
+\begin{algorithm}[H]
+    \caption{Connect node $a$ to necessary nodes}
+    \label{alg:connect}
 
-\begin{algorithm}
-    \begin{algorithmic}[1]
-        \caption{Connect node $a$ to necessary nodes}
-        \label{alg:connect}
+    \begin{itemize} 
+        \item   Node $a$ connects to all black level-$i$ neighbors.
 
-        \Procedure{ConnectToNecessaryNodes}{}
-            \For {$ x \in \cN(a) \setminus {\rm NH}(a) $}
-                \State connect($x$)
-            \EndFor
+        \item   For every white neighbor $b$: let $s$ be the set of all black neighbors of $b$, execute ConnectInside$(s, 0)$.
 
-            \For {$ x \in {\rm NH}(a) $}
-                \State ConnectInside(${\rm NH}(x), 0$)
-
-                \For {$ y \in \cN(x) \setminus {\rm NH}(x) $}
-                    \State ${\rm Used} \gets \{ {\rm false} \}$
-                    \State ${\rm Used}[x] \gets {\rm true}$
-                    \State ConnectNeighborhoods($x, y$)
-                \EndFor
-            \EndFor
-        \EndProcedure
-        
-        \algstore{connect}
-    \end{algorithmic}
+        \item   Consider every path $\cP = $ $a$--$b$--$c_1$--$c_2$--...--$c_k$--$d$ in $G$.  \\
+        connect($d$) if all:
+        \begin{enumerate}
+            \item   $d$ is black
+            \item   $b$ and $c_i$ ($1 \le i \le k$) are white
+            \item   $c_i$ ($1 \le i < k$) do not have black neighbors
+            \item   for any $c_i$ ($1 \le i \le k$) there is no black node $f$ in $G$, such that the distance
+                    from $f$ to $c_i$ is smaller than the distance
+                    from $c_i$ to $d$ in $\cP$ and the distance from $c_i$ to $a$ in $\cP$.
+            \item   choose a black neighbor $e_1$ of $b$ and a black neighbor $e_2$ of $c_k$,
+                    such that XOR$(e_1, e_2)$ is minimized. $e_1 = a$.
+        \end{enumerate}
+    \end{itemize} 
 \end{algorithm}
 
 \begin{algorithm}
     \begin{algorithmic}[1]
-        \algrestore{connect}
-
-        \Function{NH}{$d$}   \Comment{returns neighborhood of node $d$}
-            \State \textbf{return} $ \{x \in \cN(d): {\rm bit}(x, 0) 
-            		\ne {\rm bit}(d, 0)\} $
-        \EndFunction
-
-        \algstore{connect}
-    \end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-    \begin{algorithmic}[1]
-        \algrestore{connect}
-
         \Procedure{ConnectInside}{${\rm nodes}, l$}
             \State ${\rm white} \gets \{x \in {\rm nodes}: {\rm bit}(x, l) = 0\}$
             \State ${\rm black} \gets \{x \in {\rm nodes}: {\rm bit}(x, l) = 1\}$
@@ -202,43 +188,10 @@ Let $\cN(x)$ denote the set of all neighbors of $x$ in $G$. The procedure  conne
                 \State ConnectInside(${\rm black}$, $l + 1$)
             \EndIf
         \EndProcedure
-        
-        \algstore{connect}
     \end{algorithmic}
 \end{algorithm}
 
-\begin{algorithm}
-    \begin{algorithmic}[1]
-        \algrestore{connect}
-        
-        \Procedure{ConnectNeighborhoods}{from, to}
-            \If {${\rm Used}[{\rm to}]$}
-                \State \textbf{return}      %\Comment {we were here before}
-            \EndIf
-                
-            \State ${\rm Used}[{\rm to}] \gets {\rm true}$
-
-            \If {$ {\rm NH({\rm to})} \ne \emptyset $}
-                \State $f, t \gets \argmin_{x \in {\rm NH}({\rm from}), y \in {\rm NH}({\rm to})}{\rm XOR}(x, y)$
-
-                \If {$f = a$}
-                    \State connect($t$)
-                \EndIf
-            \Else
-                \For {${\rm next} \in \cN({\rm to}) \setminus {\rm NH}({\rm to})$}
-                    \State ConnectNeighborhoods(from, next)
-                \EndFor
-            \EndIf
-
-        \EndProcedure
-    \end{algorithmic}
-\end{algorithm}
-
-The first thing Algorithm~\ref{alg:connect} does is to connect to all same-colored level-$i$ neighbors, so that they also become level-$(i+1)$ neighbors. Second, for every neighbor $b$ of different color the node connects to some nodes in the neighborhood of $b$, such that a connected tree of nodes in the neighborhood of $b$ is formed. Finally, the algorithm recursively connects the neighborhood of $b$ to other local neighborhoods.
-
-Figure~\ref{fig:bmlrp-connect} illustrates this process (solid edges show 
-level-$i$ links, dashed edges indicate level-$(i+1)$ connections). First, note how black neighbors of white nodes are organized into trees. Additionally, some black nodes are chosen to connect to black nodes of other close neighborhoods. Node~4 calls ConnectNeighborhoods$(0, 5)$ and stops the recursion. On the other hand, node~2 does not find any black neighbors of node 11 and 
-calls ConnectNeighborhoods$(0, 12)$ from ConnectNeighborhoods$(0, 11)$.
+Figure~\ref{fig:bmlrp-connect} illustrates Algorithm~\ref{alg:connect} (solid edges show level-$i$ links, dashed edges indicate level-$(i+1)$ connections). First, note how black neighbors of white nodes are organized into trees. Additionally, some black nodes are chosen to connect to distant black nodes. For instance, nodes~4 and 6 are connected, and nodes~2 and 14 are connected.
 
 So far we have only discussed which nodes are necessary to connect to. A real implementation will, however, try to maintain a constant number of closest neighbors on each level. This assumption will be necessary for 
 the analysis in Sections~\ref{sec:analysis:stretch} and \ref{sec:analysis:overhead}.
@@ -261,6 +214,10 @@ the analysis in Sections~\ref{sec:analysis:stretch} and \ref{sec:analysis:overhe
 \subsection{Absence of Stale Routes}
 \label{sec:analysis:staleroutes}
 
+To guarantee the connectivity between any two nodes, assuming network convergence, we need to be certain that the protocol will not send data through a non-existing edge. Suppose, node $c_k$ has learned about edge $c_1$--$c_2$ from node $c_{k-1}$. As explained earlier, a record of this edge contains path $\cP = $ $c_1$--$c_2$--...--$c_{k-2}$ through which the edge has been sent to $c_{k-1}$ and then to $c_k$. In case some $c_j$ and $c_{j+1}$ ($1 \le j < k$) disconnect, $c_{j+1}$ eliminates a record of the edge, and if $j+1 < k$, sends an update to $c_{j+2}$. Eventually, $c_k$ receives an update after which it removes the record of edge $c_1$--$c_2$ containing path $\cP$.
+
+Hence for every record of an edge, the path recorded will not contain any broken edges. When any two nodes disconnect, this event will be propagated through every such path, and the edge will be removed.
+
 
 \subsection{Connectivity}
 \label{sec:analysis:connectivity}
@@ -272,11 +229,11 @@ two important connectivity properties maintained by the proposed protocol.
     Let a level-$i$ network be a connected graph. Then, the level-$(i+1)$ network is also a connected graph.
 
     \begin{proof}
-        Assume, the level-$(i+1)$ graph is not connected (1). Now, let $c_k$ and $a$ be nodes from two graph components in level-$(i+1)$ graph, such that the distance from $c_k$ to $a$ in level $i$ is minimized (2). Also, without loss of generality assume $c_k$ and $a$ are black in level~$i$. By the assumption (2), nodes $c_1,c_2,...,c_{k-1}$ from the shortest path  $a$--$c_1$--$c_2$--...--$c_k$ must be white.
+        Assume, the level-$(i+1)$ graph is not connected (1). Now, let $c_0$ and $d$ be nodes from two distinct graph components in level-$(i+1)$ graph, such that the distance from $c_0$ to $d$ in level-$i$ network is minimized (2). Also, without loss of generality assume $c_0$ and $d$ are black in level~$i$. If $c_0$ and $d$ are neighbors in level~$i$, by Algorithm~\ref{alg:connect} they are connected in level~$(i+1)$ and this contradicts to (1). Otherwise, let $\cP = $ $c_0$--$c_1$--...--$c_k$--$d$ be a shortest path from $c_0$ to $d$ in level-$i$ network. By the assumption (2), nodes $c_j$ ($1 \le j \le k$) are white.
 
-        Assume, node $c_k$ does not know about $a$. Then, by Algorithm~\ref{alg:routes} some node $c_j$ does not forward the information about $a$ to $c_{j+1}$ because it knows such black node $b$ that the distance from $b$ to $c_t$ (for some $1 \le t \le j - 1$) is shorter than the distance from $a$ to $c_t$ and the distance from $c_t$ to $c_{j+1}$. If $c_t$ is not connected to either $a$ or $c_k$ in level $(i+1)$, then this must contradict the minimality defined in (2). Otherwise, if $c_t$ is connected to both $a$ and $c_k$ in level $(i+1)$, $a$ and $c_k$ are connected in level $(i+1)$ and this also contradicts (2). Hence, $c_k$ must know a path to $a$. Similarly, $a$ must know a path to $c_k$.
-
-        Algorithm~\ref{alg:connect} ensures that all black neighbors of connected white nodes in level~$i$ are connected in level~$(i+1)$. Therefore, $a$ and $c_k$ must be connected in level~$(i+1)$, leading to the contradiction of the original assumption (1).
+        Assume, node $c_0$ does not know any of the edges in $\cP$. Then, by Algorithm~\ref{alg:routes} some node $c_j$ ($1 \le j \le k$) does not forward this information to $c_{j-1}$ because it knows such black node $f$ that the distance from $f$ to $c_t$ (for some $j < t \le k$) is shorter than the distance from $d$ to $c_t$ in $\cP$ and the distance from $c_t$ to $c_{j-1}$ in $\cP$. If $c_t$ is not connected to either $c_0$ or $d$ in level~$(i+1)$, then this must contradict the minimality defined in (2). Otherwise, if $c_t$ is connected to both $c_0$ and $d$ in level~$(i+1)$, $c_0$ and $d$ must be from the same graph component in level-$(i+1)$ graph and this also contradicts (2). Hence, $c_0$ knows the whole $\cP$. 
+        
+        Similarly, $c_0$ also knows edges from $c_{k-1}$ to all black neighbors of $c_{k-1}$, $d$ knows $\cP$, $d$ knows edges from $c_1$ to all black neighbors of $c_1$. By Algorithm~\ref{alg:connect} some black neighbor of $c_1$ must be connected to some black neighbor of $d$. However, all black neighbors of $c_1$ are connected and all black neighbors of $d$ are connected. Hence, $c_0$ and $d$ are in the same graph component in the level-$(i+1)$ network.
     \end{proof}
 
     \label{thm:connectivity-levels}
@@ -286,13 +243,13 @@ two important connectivity properties maintained by the proposed protocol.
     Let a level-$i$ network be a connected graph. Then, every node in this network must know at least one level-$i$ node of the opposite color, if such exists.
 
     \begin{proof}
-        Suppose, a node $c_k$ does not know any node of the opposite color. Without loss of generality, let $c_k$ be black. Now, let $a$ be a white node, such that the distance from $a$ to $c_k$ is minimized. By this assumption, all nodes $c_j$ along the shortest path $a$--$c_1$--$c_2$--...--$c_k$ must be black. Similarly to the previous proof, $c_k$ must know a path to $a$, which contradicts the original assumption.
+        Suppose, node $a$ does not know any node of the opposite color. Without loss of generality, let $a$ be black. Now, let $d$ be a white node, such that the distance from $a$ to $d$ is minimized. By this assumption, all nodes $c_j$ along a shortest path $a$--$c_1$--$c_2$--...--$c_k$--$d$ must be black. Similarly to the previous proof, $a$ must know a path to $d$, which contradicts the original assumption.
     \end{proof}
 
     \label{thm:connectivity-colors}
 \end{thm}
 
-Given Theorems~\ref{thm:connectivity-levels}~and~\ref{thm:connectivity-colors}, we are able to say that a node $a$ will always be able to forward a data packet with destination $d$ to the next hop $b$, such that $l(b,d) > l(a,d)$, satisfying the connectivity requirement.
+Given discussion in Section~\ref{sec:analysis:staleroutes} and Theorems~\ref{thm:connectivity-levels}~and~\ref{thm:connectivity-colors}, we are able to say that a node $a$ will always be able to forward a data packet with destination $d$ to the next hop $b$, such that $l(b,d) > l(a,d)$, satisfying the connectivity requirement.
 
 
 \subsection{Path stretch}
