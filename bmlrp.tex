@@ -47,7 +47,7 @@
 \maketitle
 
 \begin{abstract}
-Routing in mobile ad hoc networks (MANETs) presents a big challenge, especially when support for a large number of nodes is needed. This paper extends the local visibility concept of the recent DHT-based \urbanxor~routing protocol, which aims to reduce routing table sizes while keeping efficiency high. Our main contribution is providing a guarantee that if any two nodes are connected through other nodes, they are able to communicate with each other. We propose a new route acquisition method that aims to reduce the total amount of overhead traffic and improve convergence time. In addition, we introduce an abstraction for describing the network structure that makes it easy to understand and analyze. Finally, we make our first attempt to simulate the protocol on a large number of nodes. Compared to existing approaches in ad hoc routing, the new protocol supports the following features: scalability, guaranteed connectivity assuming network convergence, absence of single points of failure, low path-stretch, and mobility.
+Routing in mobile ad hoc networks (MANETs) presents a big challenge, especially when support for a large number of nodes is needed. This paper extends the local visibility concept of the recent DHT-based \urbanxor~routing protocol, which aims to reduce routing table sizes while keeping efficiency high. Our main contribution is providing a guarantee that if any two nodes are connected through other nodes, they are able to communicate with each other. We propose a new route acquisition method that aims to reduce the total amount of overhead traffic and improve convergence rate. In addition, we introduce an abstraction for describing the network structure that makes it easy to understand and analyze. Finally, we make our first attempt to simulate the protocol on a large number of nodes. Compared to existing approaches in ad hoc routing, the new protocol supports the following features: scalability, guaranteed connectivity assuming network convergence, absence of single points of failure, low path-stretch, and mobility.
 \end{abstract}
 
 \input{fig-bmlrp-routing.tex}
@@ -92,7 +92,7 @@ After a node joins the physical network, it starts creating virtual links to the
 
 \input{fig-bmlrp-routes.tex}
 
-When node $a$ is routing data to node $d$, it will choose the closest next hop $b$ such that $l(b,d) > l(a,d)$. In other words, the first bit that is not equal between $a$ and $d$ must be equal between $b$ and $d$. Similarly to Kademlia DHT and \urbanxor, each new node routing traffic has a longer common prefix with $d$, thus avoiding loops. To communicate with same-level nodes, source routing is used. Assuming $a$ sees $b$ on its level-$i$ routing table, it prepends path $c_1$--$c_2$--...--$c_k$--$b$ ($c_i$ are level-$i$ nodes) to the packet and sends the data to $c_1$ which in turn will forward it according to the given path. Sending the packet to $c_1$ involves routing on an underlying level-$j$ network ($j < i$). Similarly, a new path of level-$j$ nodes is prepended, as well as, paths for all underlying networks. Given that nodes' addresses are distributed uniformly, number of levels and the length of the source routing prefix is bounded by the logarithm of the total number of nodes. A real implementation will not include full $n$-bit addresses in the source routing prefix, but the details are omitted here.
+When node $a$ is routing data to node $d$, it will choose the closest next hop $b$ such that $l(b,d) > l(a,d)$. In other words, the first bit that is not equal between $a$ and $d$ must be equal between $b$ and $d$. Similarly to Kademlia DHT and \urbanxor, each new node routing traffic has a longer common prefix with $d$, thus avoiding loops. To communicate with same-level nodes, source routing is used. Assuming $a$ sees $b$ on its level-$i$ routing table, it prepends path $c_1$--$c_2$--...--$c_k$--$b$ ($c_j$ are level-$i$ nodes) to the packet and sends the data to $c_1$ which in turn will forward it according to the given path. Sending the packet to $c_1$ involves routing on an underlying level-$j$ network ($j < i$). Similarly, a new path of level-$j$ nodes is prepended, as well as, paths for all underlying networks. Given that nodes' addresses are distributed uniformly, number of levels and the length of the source routing prefix is bounded by the logarithm of the total number of nodes. A real implementation will not include full $n$-bit addresses in the source routing prefix, but the details are omitted here.
 
 For simplicity, from now on we will label a level-$i$ node white if the $(i+1)$-th bit of its address is 0; otherwise the node is black. Figure~\ref{fig:bmlrp-routing} shows a simplified example of routing data from 11100 to 01000, with subfigures demonstrating different levels of the network with respect to the destination. The blue nodes denote the routing nodes; the red node on each level indicates the destination. Bold entries indicate nodes and links known by the routing node. The journey starts on the physical level depicted by Figure~\ref{fig:bmlrp-routing-l0}. The source and destination nodes differ in the first bit, therefore 11100 transmits the data to a close physical white node -- 01100. Figure~\ref{fig:bmlrp-routing-l1} shows Level-1 network with respect to the destination, where the routing node is now 01100. 01100 chooses the next hop $b$ such that $l(b, 01000) > l(01100, 01000) = 2$; $b$ equals 01010. When node 01010 receives the message, it will find the destination address in its routing table level~3 and will route the data through an intermediate level-3 node.
 
@@ -102,7 +102,7 @@ For simplicity, from now on we will label a level-$i$ node white if the $(i+1)$-
     \label{defn:connected}
 \end{defn}
 
-For each edge sent by node $a$ to its connected level-$i$ neighbor $b$, a sequence of level-$i$ nodes $c_1$--$c_2$--$c_3$--...--$c_k$ must be included, where $c_1$ and $c_2$ (or $c_1$, $a$ if there is no $c_2$) are the nodes incident to the edge and $c_2$--$c_3$--...-$c_k$--$a$--$b$ is the path through which the edge was transmitted from $c_2$ to $b$. Node $a$ must choose the shortest such path $c_1$--$c_2$--...--$c_k$ and ensure that no $c_i$ equals $b$. Records of the paths contain shortcuts from a previously defined dictionary instead of full $n$-bit identifiers.
+For each edge sent by node $a$ to its connected level-$i$ neighbor $b$, a sequence of level-$i$ nodes $c_1$--$c_2$--$c_3$--...--$c_k$ must be included, where $c_1$ and $c_2$ (or $c_1$, $a$ if there is no $c_2$) are the nodes incident to the edge and $c_2$--$c_3$--...-$c_k$--$a$--$b$ is the path through which the edge was transmitted from $c_2$ to $b$. Node $a$ must choose the shortest such path $c_1$--$c_2$--...--$c_k$ and ensure that no $c_j$ equals $b$. Records of the paths contain shortcuts from a previously defined dictionary instead of full $n$-bit identifiers.
 
 When node $b$ has just connected to $a$ in level-$i$ network, $a$ will send a subset of close level-$i$ nodes and edges to $b$. For any update in $a$'s level-$i$ routing table, $a$ will calculate a new subset of close nodes and edges and send an update to $b$ -- the difference between the new subset and the old subset. This way, the overhead must be low and, unlike in \urbanxor, all necessary information is propagated reactively, making convergence fast. Each node combines graphs received from its level-$i$ neighbors and forms a new graph $G$, also called the level-$i$ routing table.
 
@@ -118,10 +118,10 @@ We will now examine which nodes and edges must be propagated by each node in ord
         \item   Consider every path $b$--$a$--$c_1$--$c_2$--...--$c_k$--$d$ in $G_b$; call this path $\cP$ (all nodes in $\cP$ are different). Without loss of generality, let $a$ be white. All nodes and edges of $\cP$ will be included in $G_{outb}$ if all:
         \begin{enumerate}
             \item   $d$ is black
-            \item   $c_i$ are white ($1 \le i \le k$)
-            \item   for any $c_i$ there is no black node $f$ in $G_b$, such that the distance
-                    from $f$ to $c_i$ is smaller than the distance 
-                    from $c_i$ to $d$ in $\cP$ and the distance from $c_i$ to $b$ in $\cP$.
+            \item   $c_j$ are white ($1 \le j \le k$)
+            \item   for any $c_j$ there is no black node $f$ in $G_b$, such that the distance
+                    from $f$ to $c_j$ is smaller than the distance 
+                    from $c_j$ to $d$ in $\cP$ and the distance from $c_j$ to $b$ in $\cP$.
         \end{enumerate}
 
         \item   Exclude node $b$ from $G_{outb}$.
@@ -151,11 +151,11 @@ Without loss of generality, assume $a$ is black in level-$i$ network.
         connect($d$) if all:
         \begin{enumerate}
             \item   $d$ is black
-            \item   $b$ and $c_i$ ($1 \le i \le k$) are white
-            \item   $c_i$ ($1 \le i < k$) do not have black neighbors
-            \item   for any $c_i$ ($1 \le i \le k$) there is no black node $f$ in $G$, such that the distance
-                    from $f$ to $c_i$ is smaller than the distance
-                    from $c_i$ to $d$ in $\cP$ and the distance from $c_i$ to $a$ in $\cP$.
+            \item   $b$ and $c_j$ ($1 \le j \le k$) are white
+            \item   $c_j$ ($1 \le j < k$) do not have black neighbors
+            \item   for any $c_j$ ($1 \le j \le k$) there is no black node $f$ in $G$, such that the distance
+                    from $f$ to $c_j$ is smaller than the distance
+                    from $c_j$ to $d$ in $\cP$ and the distance from $c_j$ to $a$ in $\cP$.
             \item   choose a black neighbor $e_1$ of $b$ and a black neighbor $e_2$ of $c_k$,
                     such that XOR$(e_1, e_2)$ is minimized. $e_1 = a$.
         \end{enumerate}
@@ -317,9 +317,9 @@ the value~6 and then continues decreasing as the network level $i$ grows. Additi
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have developed BMLRP, a new proactive DHT-based routing protocol for MANETs, which has several important features in comparison to previous protocols: scalability, guaranteed connectivity assuming network convergence,  absence of single points of failure, low path-stretch, and mobility. The proposed BMLRP protocol has a similar setup to the \urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Unlike the \urbanxor\ protocol, however, BMLRP guarantees that if two nodes are indirectly connected they are able to communicate. Furthermore, the proposed protocol generates much lower overhead traffic than \urbanxor\ in mobile scenarios.  
+We have developed BMLRP, a new proactive DHT-based routing protocol for MANETs, which has several important features in comparison to previous protocols: scalability, guaranteed connectivity assuming network convergence,  absence of single points of failure, low path-stretch, and mobility. The proposed BMLRP protocol has a similar setup to the \urbanxor\ protocol~\cite{Pasquini}, which employs a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Unlike the \urbanxor\ protocol, however, BMLRP guarantees that if two nodes are indirectly connected they are able to communicate. Furthermore, the proposed protocol generates lower overhead traffic and converges faster than \urbanxor\ in mobile scenarios.  
 
-Connectivity properties of the proposed protocol were proved, and growth rates of the path stretch and number of hops for routes were given. The average node degree as a function of the level~$i$ network was studied numerically. In ongoing work, we are implementing the protocol using ns-3 to evaluate path~stretch, overhead, delivery ratio and other properties through simulation.
+Connectivity properties of the proposed protocol were proven, and growth rates of the path stretch and number of hops for routes were given. The average node degree as a function of the level~$i$ network was studied numerically. In ongoing work, we are implementing the protocol using ns-3 to evaluate path~stretch, overhead, delivery ratio and other properties through simulation.
 
 
 % Generate the bibliography.
