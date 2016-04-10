@@ -255,9 +255,9 @@ Given discussion in Section~\ref{sec:analysis:staleroutes} and Theorems~\ref{thm
 \subsection{Path stretch}
 \label{sec:analysis:stretch}
 
-We will now roughly estimate the path-stretch of the proposed protocol. Each data packet is routed on level-0, level-1, ..., level-$k$ networks with respect to the destination until it finally reaches the destination. We assume equal properties across all levels 0, ..., $k - 1$, including each node maintaining a constant number $M$ of closest neighbors on each level.
+We will now roughly estimate the path-stretch of the proposed protocol. Each data packet is routed on level-0, level-1, ..., level-$k$ networks with respect to the destination until it finally reaches the destination. We assume equal properties across all levels 0, ..., $k - 1$, including each node maintaining a constant number of closest neighbors on each level.
 
-The path stretch when routing data over a level-$(i+1)$ network has to be some constant multiple $q$ ($q \ge 1$) of the stretch when routing data over the underlying level-$i$ network. Because $C_0\sqrt{N}$ is the average distance in a wireless network of $N$ identical uniformly placed nodes~\cite{Kleinrock} and level-$i$ nodes only route data to close level-$(i+1)$ nodes, the distance in physical network between a routing level-$i$ node and a routing level-$(i+1)$ node must be proportional to $\sqrt{2^i}$. We also know that the maximum level $k$ over which data is routed is less than $\log_2N$. We now find the average number of traversed hops:
+The path stretch when routing data over a level-$(i+1)$ network has to be some constant multiple $q$ ($q \ge 1$) of the stretch when routing data over a level-$i$ network. Because $C_0\sqrt{N}$ is the average distance in a wireless network of $N$ identical uniformly placed nodes~\cite{Kleinrock} and level-$i$ nodes only route data to close level-$(i+1)$ nodes, the distance in physical network between a routing level-$i$ node and a routing level-$(i+1)$ node must be proportional to $\sqrt{2^i}$. We also know that the maximum level $k$ over which data is routed is less than $\log_2N$. We now find the average number of traversed hops:
 \begin{equation*}
 \begin{split}
     {\rm hops} & = C \left (1 + \sqrt{2} q + \sqrt{2^2} q^2  + ... + \sqrt{2^{k-1}} q^{k-1} + \sqrt{N} q^k \right ) \\
@@ -278,7 +278,9 @@ Dividing by $\sqrt{N}$ we find the upper bound for the average path stretch:
 \begin{equation*}
     O({\rm stretch}) = O \left ( N^{\log_2 q} \right ) .
 \end{equation*}
-For example, when each new level increases the path-stretch by 10\%, we have $O({\rm stretch}) \approx O \left ( \sqrt[7]{N} \right )$ and $O({\rm hops}) \approx O \left ( N^{0.64} \right )$, which can be considered scalable in many situations. By changing the routing table sizes, $q$ can be adjusted as desired.
+For example, when each new level increases the path-stretch by 10\%, we have $O({\rm stretch}) \approx O \left ( \sqrt[7]{N} \right )$ and $O({\rm hops}) \approx O \left ( N^{0.64} \right )$, which can be considered scalable in many situations. 
+
+Communication between level-$i$ neighbors might be done over underlying level-$(i-1)$, level-$(i-2)$, level-$(i-3)$, ... networks, depending on the number of visible nodes on each level. Hence, increasing routing tables decreases constant $q$, and upper bounds for average number of hops and stretch also decrease asymptotically.
 
 
 \subsection{Protocol overhead}
