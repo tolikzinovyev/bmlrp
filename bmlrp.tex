@@ -80,7 +80,7 @@ In the \urbanxor\ protocol each node has a unique permanent $n$-bit identifier t
 
 After the node connects to its direct (both physical and virtual) neighbors, it starts filling the $n$ buckets by asking for missing nodes. When a new node is discovered, an abstract virtual link is built to it. Thus, multi-hop routes in the physical space are stored in a reduced form. At the same time nodes passively overhear the traffic to find new routes without loading the network. The local visibility concept ensures that the impact of any update in the network is limited by close nodes.
 
-Similarly to Kademlia DHT \cite{kademlia}, when node $a$ is routing data to $b$, the first node selects an address $c$ from its routing table such that $l(c,b) > l(a,b)$. Because each next node that forwards the data has longer common prefix with the destination, the data eventually arrives. For this to be always true, each node in the network must have at least one entry in each bucket if an appropriate identifier exists. The \urbanxor\ protocol, however, might maintain empty buckets and thus fail to satisfy this property \cite{Pasquini}.
+Similarly to Kademlia DHT \cite{kademlia}, when node $a$ is routing data to $b$, the first node selects an address $c$ from its routing table such that $l(c,b) > l(a,b)$. Because each next node that forwards the data has longer common prefix with the destination, the data eventually arrives. For this to be always true, each node in the network must have at least one entry in each bucket if an appropriate identifier exists. The \urbanxor\ protocol, however, might maintain empty buckets and thus fail to satisfy this property~\cite{Pasquini}.
 
 
 \section{The Proposed Protocol:  BMLRP}
@@ -104,7 +104,7 @@ and will route the data through an intermediate level-3 node.
     \label{defn:connected}
 \end{defn}
 
-For each edge sent by node $a$ to its connected level-$i$ neighbor $b$, a sequence of level-$i$ nodes $c_1$--$c_2$--$c_3$--...--$c_k$ must be included, where $c_1$ and $c_2$ (or $c_1 = a$ if there is no $c_2$) are the nodes incident to the edge and $c_2$--$c_3$--...-$c_k$--$a$--$b$ is the path through which the edge was transmitted from $c_2$ to $b$. Node $a$ must choose the shortest such path $c_1$--$c_2$--...--$c_k$ and ensure that no $c_j$ equals $b$. Records of the paths contain shortcuts from a previously defined dictionary instead of full $n$-bit identifiers.
+For each edge sent by node $a$ to its connected level-$i$ neighbor $b$, a sequence of level-$i$ nodes $c_1$--$c_2$--$c_3$--...--$c_k$ must be included, where $c_1$ and $c_2$ (or $c_1$ and $a$ if there is no $c_2$) are the nodes incident to the edge and $c_2$--$c_3$--...-$c_k$--$a$--$b$ is the path through which the edge was transmitted from $c_2$ to $b$. Node $a$ must choose the shortest such path $c_1$--$c_2$--...--$c_k$ and ensure that no $c_j$ equals $b$. Records of the paths contain shortcuts from a previously defined dictionary instead of full $n$-bit identifiers.
 
 When node $b$ has just connected to $a$ in level-$i$ network, $a$ will send a subset of close level-$i$ nodes and edges to $b$. For any update in $a$'s level-$i$ routing table, $a$ will calculate a new subset of close nodes and edges and send an update to $b$ -- the difference between the new subset and the old subset. This way, the overhead is kept low and, unlike in \urbanxor, all necessary information is propagated reactively, making convergence fast. Each node combines graphs received from its level-$i$ neighbors and forms a new graph $G$, also called the level-$i$ routing table.
 
@@ -157,10 +157,11 @@ Without loss of generality, assume $a$ is black in level-$i$ network.
             \item   $b$ and $c_j$ ($1 \le j \le k$) are white ,
             \item   $c_j$ ($1 \le j < k$) do not have black neighbors ,
             \item   for any $c_j$ ($1 \le j \le k$) there is no black node $f$ in $G$, such that the distance
-                    from $f$ to $c_j$ is smaller than the distance ,
-                    from $c_j$ to $d$ in $\cP$ and the distance from $c_j$ to $a$ in $\cP$.
+                    from $f$ to $c_j$ is smaller than the distance
+                    from $c_j$ to $d$ in $\cP$ and the distance from $c_j$ to $a$ in $\cP$ ,
             \item   choose a black neighbor $e_1$ of $b$ and a black neighbor $e_2$ of $c_k$,
-                    such that XOR$(e_1, e_2)$ is minimized. Set $e_1 = a$.
+                    such that XOR$(e_1, e_2)$ is minimized.
+                    $e_1$ equals $a$
         \end{enumerate}
     \end{itemize} 
 \end{algorithm}
