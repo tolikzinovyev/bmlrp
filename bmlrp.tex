@@ -64,11 +64,11 @@ DHT-based routing, however, often suffers from the mismatch problem resulting in
 
 A number of interesting solutions have been proposed for minimizing the path stretch. For example, the Virtual Ring Routing protocol builds a virtual ring where nodes are ordered according to their LIDs~\cite{VRR}. Each node maintains a record of a constant number of nodes with closest addresses and paths to them. When routing data, the next hop with the closest address to the destination's identifier is chosen. The guarantee of constant path stretch relies on the fact that each node knows a total of $O(\sqrt{N})$ nodes (where $N$ is the total number of nodes in the network). Hence, the probability that a node will know a route to the destination is $O(\frac{1}{\sqrt{N}})$, and the expected number of traversed nodes is $O(\sqrt{N})$~\cite{VRR}. Given that the average distance in a wireless ad hoc network is also $O(\sqrt{N})$~\cite{Kleinrock}, the path stretch is constant. Another approach is taken by the 3D~routing protocol, which ensures good path stretch properties by embedding the node LIDs into a 3-dimensional space~\cite{3drp}. Thus, forwarding data is as simple as sending it in the ``right direction.'' Both approaches, however, fail to deal with the network mobility and merging/splitting operations. 
 
-The Binary Multi-level Routing Protocol (BMLRP) proposed in this paper is closest in approach to the recent KDSR~\cite{kdsr} and \urbanxor~\cite{Pasquini} protocols, which employ a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Each node maintains $n$ buckets for storing information about other nodes with address prefixes equal to the node's address prefix. When routing information to any node, the next hop with the longest matching prefix is chosen from among the $n$~buckets. Path efficiency in \urbanxor~is achieved by employing the concept of local visibility, which prioritizes physically close nodes in the routing table. Maintaining such network structure ensures small path stretch, limits protocol overhead and supports mobility better than other routing approaches do~\cite{urbanxor}.
+The Binary Multi-Level Routing Protocol (BMLRP) proposed in this paper is closest in approach to the recent KDSR~\cite{kdsr} and \urbanxor~\cite{Pasquini} protocols, which employ a Kademlia DHT~\cite{kademlia} inspired approach for building the network structure. Each node maintains $n$ buckets for storing information about other nodes with address prefixes equal to the node's address prefix. When routing information to any node, the next hop with the longest matching prefix is chosen from among the $n$~buckets. Path efficiency in \urbanxor~is achieved by employing the concept of local visibility, which prioritizes physically close nodes in the routing table. Maintaining such network structure ensures small path stretch, limits protocol overhead and supports mobility better than other routing approaches do~\cite{urbanxor}.
 
 The \urbanxor\ protocol, however, has several drawbacks. The most prominent one is the absence of a guarantee that if two nodes are indirectly connected they are able to communicate \cite{Pasquini}. Another objection is the slow method of acquiring paths to other nodes, which still tends to generate much overhead traffic in mobile scenarios. The proposed BMLRP protocol is a proactive routing protocol that aims to solve both problems altogether.
 
-The rest of the paper is organized as follows. Section~\ref{sec:urbanxor} describes the \urbanxor\ routing protocol in more detail. Section~\ref{sec:bmlrp} introduces BMRLP, which overcomes the major drawbacks of \urbanxor. 
+The rest of the paper is organized as follows. Section~\ref{sec:urbanxor} describes the \urbanxor\ routing protocol in more detail. Section~\ref{sec:bmlrp} introduces BMLRP, which overcomes the major drawbacks of \urbanxor. 
 Section~\ref{sec:analysis} discusses routing properties of the new approach. 
 Section~\ref{sec:conclusion} concludes the paper.
 
@@ -151,7 +151,7 @@ Without loss of generality, assume $a$ is black in level-$i$ network.
                 let $s$ be the set of all black neighbors of $b$, execute ConnectInside$(s, 0)$.
 
         \item   Consider every path $\cP = $ $a$--$b$--$c_1$--$c_2$--...--$c_k$--$d$ in $G$.  \\
-        connect($d$) if all of the folllowing hold:
+        connect($d$) if all of the following hold:
         \begin{enumerate}
             \item   $d$ is black ,
             \item   $b$ and $c_j$ ($1 \le j \le k$) are white ,
