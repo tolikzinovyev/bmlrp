@@ -16,7 +16,6 @@
 \usepackage{amssymb}
 
 \usepackage{amsthm}
-\renewcommand{\qedsymbol}{$\blacksquare$}
 \newtheorem{thm}{Theorem}
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}
@@ -221,13 +220,13 @@ two important connectivity properties maintained by the proposed protocol.
 \begin{thm}
     Let a level-$i$ network be a connected graph. Then, the level-$(i+1)$ network is also a connected graph.
 
-    \begin{proof}
-        Assume, the level-$(i+1)$ graph is not connected (1). Now, let $c_0$ and $d$ be nodes from two distinct graph components in level-$(i+1)$ graph, such that the distance from $c_0$ to $d$ in level-$i$ network is minimized (2). Also, without loss of generality assume $c_0$ and $d$ are black on level~$i$. If $c_0$ and $d$ are neighbors on level~$i$, by Algorithm~\ref{alg:connect} they are connected on level~$(i+1)$ and this contradicts (1). Otherwise, let $\cP = $ $c_0$--$c_1$--...--$c_k$--$d$ be a shortest path from $c_0$ to $d$ in level-$i$ network. By the assumption (2), nodes $c_j$ ($1 \le j \le k$) are white.
+    \begin{IEEEproof}
+        \normalfont Assume, the level-$(i+1)$ graph is not connected (1). Now, let $c_0$ and $d$ be nodes from two distinct graph components in level-$(i+1)$ graph, such that the distance from $c_0$ to $d$ in level-$i$ network is minimized (2). Also, without loss of generality assume $c_0$ and $d$ are black on level~$i$. If $c_0$ and $d$ are neighbors on level~$i$, by Algorithm~\ref{alg:connect} they are connected on level~$(i+1)$ and this contradicts (1). Otherwise, let $\cP = $ $c_0$--$c_1$--...--$c_k$--$d$ be a shortest path from $c_0$ to $d$ in level-$i$ network. By the assumption (2), nodes $c_j$ ($1 \le j \le k$) are white.
 
         Assume, node $c_0$ does not know some edge in $\cP$. Then, by Algorithm~\ref{alg:routes} some node $c_j$ ($1 \le j \le k$) does not forward this information to $c_{j-1}$ because it knows such black node $f$ that the distance from $f$ to $c_t$ (for some $j < t \le k$) is shorter than the distance from $d$ to $c_t$ in $\cP$ and the distance from $c_t$ to $c_{j-1}$ in $\cP$. If $c_t$ is not connected to either $c_0$ or $d$ on level~$(i+1)$, then this must contradict the minimality defined in (2). Otherwise, if $c_t$ is connected to both $c_0$ and $d$ on level~$(i+1)$, $c_0$ and $d$ must be from the same graph component in level-$(i+1)$ graph and this also contradicts (2). Hence, $c_0$ knows the whole $\cP$. 
         
         Similarly, $c_0$ also knows edges from $c_{k-1}$ to all black neighbors of $c_{k-1}$, $d$ knows $\cP$, $d$ knows edges from $c_1$ to all black neighbors of $c_1$. By Algorithm~\ref{alg:connect} some black neighbor of $c_1$ must be connected to some black neighbor of $d$. However, all black neighbors of $c_1$ form a connected level-$(i+1)$ graph and all black neighbors of $d$ form a connected level-$(i+1)$ graph. Hence, $c_0$ and $d$ are in the same graph component in the level-$(i+1)$ network.
-    \end{proof}
+    \end{IEEEproof}
 
     \label{thm:connectivity-levels}
 \end{thm}
@@ -235,9 +234,9 @@ two important connectivity properties maintained by the proposed protocol.
 \begin{thm}
     Let a level-$i$ network be a connected graph. Then, every node in this network must know at least one level-$i$ node of the opposite color, if such exists.
 
-    \begin{proof}
-        Suppose, node $a$ does not know any node of the opposite color. Without loss of generality, let $a$ be black. Now, let $d$ be a white node, such that the distance from $a$ to $d$ in level-$i$ network is minimized. By this assumption, all nodes $c_j$ along a shortest path $a$--$c_1$--$c_2$--...--$c_k$--$d$ must be black. Similarly to the previous proof, $a$ must know a path to $d$, which contradicts the original assumption.
-    \end{proof}
+    \begin{IEEEproof}
+        \normalfont Suppose, node $a$ does not know any node of the opposite color. Without loss of generality, let $a$ be black. Now, let $d$ be a white node, such that the distance from $a$ to $d$ in level-$i$ network is minimized. By this assumption, all nodes $c_j$ along a shortest path $a$--$c_1$--$c_2$--...--$c_k$--$d$ must be black. Similarly to the previous proof, $a$ must know a path to $d$, which contradicts the original assumption.
+    \end{IEEEproof}
 
     \label{thm:connectivity-colors}
 \end{thm}
