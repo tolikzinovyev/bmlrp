@@ -4,7 +4,7 @@
 %\geometry{letterpaper}
 
 \usepackage[usenames, dvipsnames]{color}
-\usepackage{url}
+\usepackage[hidelinks]{hyperref}
 \usepackage{tikz}
 
 \ifCLASSOPTIONcompsoc
@@ -279,7 +279,7 @@ Communication between level-$i$ neighbors might be done over underlying level-$(
 \subsection{Average node degree}
 \label{sec:analysis:nodedegree}
 
-Despite several advantages, BMLRP does not guarantee that the routing table sizes for higher level networks remain low. To analyze this aspect, we implemented and tested Algorithms~\ref{alg:routes} and \ref{alg:connect} on a static network to track the average degree of nodes across each level.
+Despite several advantages, BMLRP does not guarantee that the routing table sizes for higher level networks remain low. To analyze this aspect, we implemented\footnote{\url{https://github.com/aszinovyev/bmlrp-simple}} and tested Algorithms~\ref{alg:routes} and \ref{alg:connect} on a static network to track the average degree of nodes across each level.
 
 In Fig.~\ref{fig:degrees}, the black line shows the simulation result on $2^{14}$ identical nodes uniformly distributed in a square area. Note that the average number of neighbors first stabilizes around the value~6 and then continues decreasing as the network level $i$ grows. Additionally, we randomly connected 1\%, 5\% and 10\% nodes in the network independently of their coordinates. The blue, orange and red lines show that when random long-range edges are added, the higher level networks become close world networks and the number of mandatory connections fails to decrease. The impact, however, is small; the red line demonstrates that even when 10\% of the nodes are randomly connected, the average number of level-$i$ neighbors in the network does not exceed 21 for $2^{14}$ nodes.
 
