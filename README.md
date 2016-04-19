@@ -1,4 +1,4 @@
 # BMLRP
-Binary Multi-Level Routing Protocol
+Binary Multi-Level Routing Protocol paper
 
-Work in Progress
+[PDF](https://github.com/aszinovyev/releases)
